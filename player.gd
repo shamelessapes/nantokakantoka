@@ -1,0 +1,125 @@
+extends Area2D
+
+#-----------関数の定義------------
+@export var speed := 500      #デフォルトの移動速度
+@export var slow_speed := 200 #shift押したときのスピード
+@export var shot_scene: PackedScene # 弾のプレハブ（bullet.tscn）
+@export var homing_bullet_scene: PackedScene  # ホーミング弾のプレハブ
+@onready var shot_sound_player := $shotsound  # AudioStreamPlayerノード
+@onready var sprite := $AnimatedSprite2D # 左右方向移動時の画像
+@onready var collision_sprite := $collisionsprite  # 当たり判定用の画像（Spriteノード）
+@onready var shot_left = $shotL
+@onready var shot_right = $shotR
+var current_speed := speed     #見たまんま
+var verocity := Vector2.ZERO   #速度ベクトル
+var can_move := true          #壁に入ったらfalseにする
+var previous_position := Vector2.ZERO  #前の位置を記録しておく
+var shoot_cooldown := 0.03             # 弾を撃つ間隔（秒） 
+var homingshot_cooldown := 0.3         # ホーミング弾の感覚
+var shoot_timer := 0.0                # クールダウンタイマー　0以下になったら次の弾が打てる
+var homingshot_timer := 0.0          # ホーミング弾のクールダウンタイマー
+
+func _ready() -> void:
+	pass  # 何もしない
+
+# ----------弾を発射する関数-----------
+func _process(delta):
+	# Zキー長押しで連射
+	if Input.is_action_pressed("shot"): #justがないと「押してる間」という意味になる
+		shoot_timer -= delta
+		if shoot_timer <= 0.0:          #残りタイマーが0以下なら
+			shot()                      #shot()を呼び出す
+			shoot_timer = shoot_cooldown#タイマーをリセット　0.1秒たったら次の弾を打てる
+	else:
+		shoot_timer = 0.0  # 離したらタイマーをリセット
+		
+	if Input.is_action_pressed("shot"):      # 押してる間
+		homingshot_timer -= delta            
+		if homingshot_timer <= 0.0:          # homingshottimerが0なら
+			homingshot()                     # 弾を打つ
+			homingshot_timer = homingshot_cooldown
+	else:
+		homingshot_timer = 0.0
+			
+# ----------弾を発射する関数-----------
+# 弾を発射する関数（2連射＋位置調整）
+func shot():
+	if shot_scene:  # shot_scene が正しく読み込まれているときのみ
+		# プレイヤーの移動とは無関係に、発射する瞬間の位置を固定
+		var shot_left = $shotL.global_position
+		var shot_right = $shotR.global_position
+		
+		# 発射ポイント（左右）のリストを作成
+		var spawn_points = [shot_left, shot_right]
+
+		# それぞれの発射ポイントに弾をインスタンス化
+		for spawn_point in spawn_points:
+			var shot = shot_scene.instantiate()  # 弾をインスタンス化
+			shot.global_position = spawn_point  # 発射位置をセット
+			get_tree().current_scene.add_child(shot)  # 弾をシーンに追加
+			
+		# 効果音を再生
+		shot_sound_player.play()
+		
+# ホーミング弾発射
+func homingshot():
+	if homing_bullet_scene:
+		var bullet = homing_bullet_scene.instantiate()
+		bullet.global_position = global_position
+		get_parent().add_child(bullet)
+
+# 移動操作
+func _physics_process(delta: float) -> void:
+	verocity = Vector2.ZERO
+	
+	if Input.is_action_pressed("ui_right"):
+		verocity.x += 1
+	if Input.is_action_pressed("ui_left"):
+		verocity.x -= 1
+	if Input.is_action_pressed("ui_down"):
+		verocity.y += 1
+	if Input.is_action_pressed("ui_up"):
+		verocity.y -= 1
+	#shift押したら遅くなる
+	if Input.is_action_pressed("slow"):  
+		current_speed = slow_speed
+		collision_sprite.visible = true  # 当たり判定用の画像を表示
+		collision_sprite.play("collisionanime")  # 当たり判定のアニメーションを再生
+	else:
+		current_speed = speed  #shift離すと元に戻る
+		collision_sprite.visible = false  # 当たり判定用の画像を非表示
+		collision_sprite.stop()  # アニメーションを停止
+
+# アニメーション切り替え
+	if verocity.x < 0:  # 左に動いている場合
+		sprite.play("left")
+	elif verocity.x > 0:  # 右に動いている場合
+		sprite.play("right")
+	else:  # どちらにも動いていない場合
+		sprite.play("default")
+
+
+	#壁に当たると止まる処理の定義
+	if not can_move:           #もしcan_moveでないなら
+		position = previous_position  #前の位置に戻す（押し返す）
+		return                 #止まる
+
+	#斜め移動の動きを滑らかにする処置
+	if verocity != Vector2.ZERO:  #もしプレイヤーがどこかの方向に入力していて、移動しようとしているなら
+		verocity = verocity.normalized()  #ベクトルの長さを1にして、方向だけを保持する(ノーマライズドする)
+
+	previous_position = position  #移動前の位置を記録
+	position += verocity * current_speed * delta  
+	#位置（position）を現在の方向 × 速度 × 経過時間（delta）で更新する（PCの性能で位置が変わっちゃうから）
+
+# wallに入ったときに呼ばれる（コードで接続）
+func _on_area_entered(area: Area2D) -> void:
+	print("Entered: ", area.name)  # テスト用
+	if area.is_in_group("wall"):
+		can_move = false  #壁に入ったら移動を一時停止
+
+# wallから出たときに呼ばれる（コードで接続）
+func _on_area_exited(area: Area2D) -> void:
+	print("Exited: ", area.name)  # テスト用
+	if area.is_in_group("wall"):
+		can_move = true  #壁から出たら移動再開
