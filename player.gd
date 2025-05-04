@@ -5,11 +5,15 @@ extends Area2D
 @export var slow_speed := 200 #shift押したときのスピード
 @export var shot_scene: PackedScene # 弾のプレハブ（bullet.tscn）
 @export var homing_bullet_scene: PackedScene  # ホーミング弾のプレハブ
+@export var max_lives := 5
+@export var current_lives := 3
+@export var start_position := Vector2.ZERO  # 初期位置
 @onready var shot_sound_player := $shotsound  # AudioStreamPlayerノード
 @onready var sprite := $AnimatedSprite2D # 左右方向移動時の画像
 @onready var collision_sprite := $collisionsprite  # 当たり判定用の画像（Spriteノード）
 @onready var shot_left = $shotL
 @onready var shot_right = $shotR
+@onready var hud = get_parent().get_node("HUD")
 var current_speed := speed     #見たまんま
 var verocity := Vector2.ZERO   #速度ベクトル
 var can_move := true          #壁に入ったらfalseにする
@@ -18,9 +22,23 @@ var shoot_cooldown := 0.03             # 弾を撃つ間隔（秒）
 var homingshot_cooldown := 0.3         # ホーミング弾の感覚
 var shoot_timer := 0.0                # クールダウンタイマー　0以下になったら次の弾が打てる
 var homingshot_timer := 0.0          # ホーミング弾のクールダウンタイマー
+var invincible = false
+var invincible_time = 2.0  # 無敵時間2秒
+var invincible_timer = 0.0
+var blink_speed = 5.0                # 点滅の速さ（大きいほどはやい）
+var blink_sprite: AnimatedSprite2D
+var is_blinking = false  # ← 点滅するかどうかのスイッチ
+signal life_changed(lives)
+signal player_dead
 
 func _ready() -> void:
-	pass  # 何もしない
+	update_life_ui(current_lives)
+	position = start_position  # 初期化時にセット
+# ライフ更新の関数
+func update_life_ui(lives: int):
+	hud.update_life_ui(lives)
+	blink_sprite = $AnimatedSprite2D  # 子ノードのスプライトを取得
+
 
 # ----------弾を発射する関数-----------
 func _process(delta):
@@ -41,6 +59,22 @@ func _process(delta):
 	else:
 		homingshot_timer = 0.0
 			
+			
+	for area in get_overlapping_areas():
+		if area.is_in_group("enemy"):
+			take_damage()
+			
+	if invincible:
+		invincible_timer -= delta
+		if invincible_timer <= 0:
+			invincible = false
+		
+	if is_blinking:
+		blink_sprite.modulate.a = abs(sin(Time.get_ticks_msec() / 1000.0 * blink_speed))
+	else:
+		blink_sprite.modulate.a = 1.0  # 通常は完全に表示
+	# サイン波で透明度を0〜1に変化させる
+
 # ----------弾を発射する関数-----------
 # 弾を発射する関数（2連射＋位置調整）
 func shot():
@@ -123,3 +157,39 @@ func _on_area_exited(area: Area2D) -> void:
 	print("Exited: ", area.name)  # テスト用
 	if area.is_in_group("wall"):
 		can_move = true  #壁から出たら移動再開
+
+# ----------ダメージ処理----------
+func take_damage():
+	if invincible or current_lives <= 0:
+		return
+	
+	current_lives -= 1
+	position = start_position # 初期位置に戻される
+	invincible = true
+	invincible_timer = invincible_time
+	emit_signal("life_changed", current_lives)
+	start_blink()
+
+	# HPが0じゃない場合のみhit_stopを呼ぶ
+	if current_lives > 0:
+		hit_stop()
+	
+	if current_lives <= 0:
+		die()
+
+		
+func start_blink(duration: float = 2.0):  # 二秒点滅
+	is_blinking = true
+	await get_tree().create_timer(duration).timeout
+	is_blinking = false
+
+func hit_stop(duration: float = 0.1) -> void:
+	var paused_backup = get_tree().paused  # 現在のポーズ状態をバックアップ
+	get_tree().paused = true  # ゲームを一時停止
+	await get_tree().create_timer(duration).timeout  # リアルタイムでタイマーを待機
+	get_tree().paused = paused_backup  # 元に戻す
+
+
+func die():
+	emit_signal("player_dead")
+	queue_free()
