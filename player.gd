@@ -35,6 +35,8 @@ signal player_dead
 func _ready() -> void:
 	update_life_ui(current_lives)
 	position = start_position  # 初期化時にセット
+
+
 # ライフ更新の関数
 func update_life_ui(lives: int):
 	hud.update_life_ui(lives)
@@ -133,9 +135,8 @@ func _physics_process(delta: float) -> void:
 	else:  # どちらにも動いていない場合
 		sprite.play("default")
 
-
 	#壁に当たると止まる処理の定義
-	if not can_move:           #もしcan_moveでないなら
+	if not can_move : #もしcan_moveでないなら
 		position = previous_position  #前の位置に戻す（押し返す）
 		return                 #止まる
 
@@ -152,7 +153,6 @@ func _on_area_entered(area: Area2D) -> void:
 	print("Entered: ", area.name)  # テスト用
 	if area.is_in_group("wall"):
 		can_move = false  #壁に入ったら移動を一時停止
-
 # wallから出たときに呼ばれる（コードで接続）
 func _on_area_exited(area: Area2D) -> void:
 	print("Exited: ", area.name)  # テスト用
@@ -163,36 +163,30 @@ func _on_area_exited(area: Area2D) -> void:
 func take_damage():
 	if invincible or current_lives <= 0:
 		return
-	
-	current_lives -= 1
-	player_damaged()
-	position = start_position # 初期位置に戻される
-	invincible = true
+	invincible = true               # 無敵オン
 	invincible_timer = invincible_time
-	emit_signal("life_changed", current_lives)
-	start_blink()
-
-	# HPが0じゃない場合のみhit_stopを呼ぶ
-	if current_lives > 0:
-		hit_stop()
+	current_lives -= 1  # ライフを減らす
+	player_damaged()
+	await hit_stop()                # 止める
+	position = start_position       # 初期位置へ
+	emit_signal("life_changed", current_lives) # ライフ表示変動
+	start_blink() # 点滅
 	
 	if current_lives <= 0:
 		die()
-
 		
 func start_blink(duration: float = 2.0):  # 二秒点滅
 	is_blinking = true
 	await get_tree().create_timer(duration).timeout
 	is_blinking = false
 
-func hit_stop(duration: float = 0.1) -> void:
-	var paused_backup = get_tree().paused  # 現在のポーズ状態をバックアップ
-	get_tree().paused = true  # ゲームを一時停止
-	await get_tree().create_timer(duration).timeout  # リアルタイムでタイマーを待機
-	get_tree().paused = paused_backup  # 元に戻す
+func hit_stop(duration: float = 0.03) -> void:  # ここで停止時間調整
+	Engine.time_scale = 0.01
+	await get_tree().create_timer(duration, true).timeout
+	Engine.time_scale = 1.0
+	print("時間再開！")
 	
 func player_damaged() -> void: # 効果音処理
-	print("音鳴らすで")
 	var new_sound = AudioStreamPlayer2D.new()
 	new_sound.stream = damagesound
 	new_sound.volume_db = 0
@@ -201,7 +195,6 @@ func player_damaged() -> void: # 効果音処理
 	new_sound.play()
 
 	new_sound.finished.connect(func(): new_sound.queue_free())
-
 
 func die():
 	emit_signal("player_dead")
