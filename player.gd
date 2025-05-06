@@ -11,6 +11,7 @@ extends Area2D
 @onready var shot_sound_player := $shotsound  # AudioStreamPlayerノード
 @onready var sprite := $AnimatedSprite2D # 左右方向移動時の画像
 @onready var collision_sprite := $collisionsprite  # 当たり判定用の画像（Spriteノード）
+@onready var damagesound: AudioStream = preload("res://se/se_damage9.mp3")  # 音をファイルとしてロード
 @onready var shot_left = $shotL
 @onready var shot_right = $shotR
 @onready var hud = get_parent().get_node("HUD")
@@ -164,6 +165,7 @@ func take_damage():
 		return
 	
 	current_lives -= 1
+	player_damaged()
 	position = start_position # 初期位置に戻される
 	invincible = true
 	invincible_timer = invincible_time
@@ -188,6 +190,17 @@ func hit_stop(duration: float = 0.1) -> void:
 	get_tree().paused = true  # ゲームを一時停止
 	await get_tree().create_timer(duration).timeout  # リアルタイムでタイマーを待機
 	get_tree().paused = paused_backup  # 元に戻す
+	
+func player_damaged() -> void: # 効果音処理
+	print("音鳴らすで")
+	var new_sound = AudioStreamPlayer2D.new()
+	new_sound.stream = damagesound
+	new_sound.volume_db = 0
+	new_sound.position = position  # global_position は使わない (Godot 4.2以降では position でOK)
+	get_tree().current_scene.add_child(new_sound)
+	new_sound.play()
+
+	new_sound.finished.connect(func(): new_sound.queue_free())
 
 
 func die():
