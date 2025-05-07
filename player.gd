@@ -37,6 +37,8 @@ func _ready() -> void:
 	position = start_position  # 初期化時にセット
 
 
+
+
 # ライフ更新の関数
 func update_life_ui(lives: int):
 	hud.update_life_ui(lives)
