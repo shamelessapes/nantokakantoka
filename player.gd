@@ -68,8 +68,12 @@ func _process(delta):
 			
 			
 	for area in get_overlapping_areas():
+	# 敵と弾に当たった場合にダメージを受ける
 		if area.is_in_group("enemy"):
 			take_damage()
+		elif area.is_in_group("bullet"):
+			take_damage()
+
 			
 	if invincible:
 		invincible_timer -= delta
@@ -95,10 +99,9 @@ func shot():
 
 		# それぞれの発射ポイントに弾をインスタンス化
 		for spawn_point in spawn_points:
-			var shot = shot_scene.instantiate()  # 弾をインスタンス化
-			shot.global_position = spawn_point  # 発射位置をセット
-			get_tree().current_scene.add_child(shot)  # 弾をシーンに追加
-			
+			var shot = shot_scene.instantiate() # 弾をインスタンス化
+			get_tree().current_scene.add_child(shot)
+			shot.global_position = spawn_point  # add_childの後にこれをやる
 		# 効果音を再生
 		shot_sound_player.play()
 		

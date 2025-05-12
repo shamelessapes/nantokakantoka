@@ -8,25 +8,34 @@ extends Area2D
 
 var shoot_timer := 0.0  # 発射タイマー
 
-func find_nearest_enemy() -> Area2D:
+func find_nearest_enemy() -> Node2D:
 	var enemies = get_tree().get_nodes_in_group("enemy")
-	var nearest = null
-	var min_dist = INF
+	var nearest_enemy: Node2D = null
+	var min_distance = INF
 	for enemy in enemies:
-		if enemy and enemy.is_inside_tree():
-			var dist = global_position.distance_to(enemy.global_position)
-			if dist < min_dist:
-				min_dist = dist
-				nearest = enemy
-	return nearest
+		if not enemy is Node2D:
+			continue  # CharacterBody2DもArea2DもNode2Dの子クラスだからこれでOK！
+		var distance = global_position.distance_to(enemy.global_position)
+		if distance < min_distance:
+			min_distance = distance
+			nearest_enemy = enemy
+	return nearest_enemy
 
 func check_collision():
 	if homing_collision:
+		# Area2D（弾や当たり判定）との衝突判定
 		for area in homing_collision.get_overlapping_areas():
-			if area.is_in_group("enemy"):
-				if area.has_method("take_damage"):
-					area.take_damage(damage)
+			if area.is_in_group("enemy") and area.has_method("take_damage"):
+				area.take_damage(damage)
 				queue_free()
+				return  # 1回だけ処理したら終了（複数に当たらないように）
+		# PhysicsBody2D（CharacterBody2D や RigidBody2D など）との衝突判定
+		for body in homing_collision.get_overlapping_bodies():
+			if body.is_in_group("enemy") and body.has_method("take_damage"):
+				body.take_damage(damage)
+				queue_free()
+				return
+
 
 func check_out_of_bounds():
 	if position.y < -100 or position.y > 1200 or position.x < 300 or position.x > 1000:
