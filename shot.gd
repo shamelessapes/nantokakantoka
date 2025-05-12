@@ -14,6 +14,7 @@ func _process(delta):
 # 衝突時の処理
 func _on_area_entered(area: Area2D) -> void:
 	# 衝突した相手が敵かどうかをチェック
-	if area.is_in_group("enemy"):  # 敵グループに所属していれば
-		area.take_damage(damage)  # 敵にダメージを与える
-		queue_free()  # 弾を消す
+	var parent = area.get_parent()
+	if parent.is_in_group("enemy") and parent.has_method("take_damage"):
+		parent.take_damage(damage)
+		queue_free()
