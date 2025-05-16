@@ -26,6 +26,8 @@ func _on_arrival():
 # ▼ 通常攻撃1のパターン処理 ▼
 # ========================
 func start_pattern_1():
+	Global.play_effect_and_sound(global_position)
+	await get_tree().create_timer(2.0).timeout
 	await move_to(Vector2(350, 200))  # 左へ移動
 	shoot_bullet()  # 円弾発射
 	await wait(2.0)  # 少し待つ
@@ -89,12 +91,59 @@ func take_damage(damage: int) -> void:
 	hp -= damage
 	hp_bar.value = hp  # HPバーの値を更新！
 	if hp <= 0:
-		die()
+		end_phase()
+
+
+# ========================
+#　▼　フェーズ処理　▼
+# ========================
+func start_phase(phase_data: Dictionary):
+	hp = phase_data.hp
+	hp_bar.max_value = hp
+	hp_bar.value = hp
+	match phase_data.pattern:
+		"pattern_1":
+			start_pattern_1()
+		#"skill_1":
+			#start_spell_1()
+		#"pattern_2":
+			#start_pattern_2()
+		#"skill_2":
+			#start_spell_2()
+	
+	if phase_data.type == "spell":
+		await get_node("/root/bosstest").show_spell_cutin(phase_data.name)
+		get_node("/root/bosstest").change_background(true)
+	else:
+		get_node("/root/bosstest").change_background(false)
+	match phase_data.pattern:
+		"pattern_1":
+			start_pattern_1()
+		#"skill_1":
+			#start_spell_1()
+
+func end_phase():
+	print("フェーズ終了")
+	bullet_timer.stop()
+	#await show_cut_in()
+	#await change_background()
+	get_node("/root/bosstest").start_next_phase()
 
 # ========================
 # ▼ 死亡処理 ▼
 # ========================
 func die():
 	is_dead = true
+	bullet_timer.stop()  # タイマー停止
+	set_process(false)   # _processや_physics_processを止めるなら（任意）
+
 	print("ボス撃破！")
-	queue_free()  # とりあえず消える（あとで爆発＆次の演出へ）
+	queue_free()  # 最後に消える（演出後にしたければ後ろに移動）
+
+
+# ========================
+# ▼ プレイヤーとの接触 ▼
+# ========================
+func _on_area_2d_area_entered(area: Area2D) -> void:
+	if area.is_in_group("player"):
+		area.take_damage()

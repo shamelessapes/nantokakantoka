@@ -67,12 +67,12 @@ func _process(delta):
 		homingshot_timer = 0.0
 			
 			
-	for area in get_overlapping_areas():
+	#for area in get_overlapping_areas():
 	# 敵と弾に当たった場合にダメージを受ける
-		if area.is_in_group("enemy"):
-			take_damage()
-		elif area.is_in_group("bullet"):
-			take_damage()
+		#if area.is_in_group("enemy"):
+			#take_damage()
+		#elif area.is_in_group("bullet"):
+			#take_damage()
 
 			
 	if invincible:
@@ -176,6 +176,7 @@ func take_damage():
 	explode()
 	flash_screen()
 	player_damaged()
+	Global.apply_hitstop()
 	await hit_stop()                # 止める
 	position = start_position       # 初期位置へ
 	emit_signal("life_changed", current_lives) # ライフ表示変動

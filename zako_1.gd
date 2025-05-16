@@ -18,6 +18,10 @@ func _process(delta):
 
 	if position.y > 1000:
 		queue_free()
+		
+func _on_area_entered(area: Area2D) -> void:
+	if area.is_in_group("player"):
+		area.take_damage()
 
 func _on_shot_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player_shot"):
