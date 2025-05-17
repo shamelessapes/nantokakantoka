@@ -7,7 +7,7 @@ func set_velocity(v: Vector2) -> void:
 	velocity = v  # 外部から設定された方向で velocity を更新
 
 func _ready():
-	pass # velocity は shoot_bullet() で更新されるから、ここでは特に何もなし
+	add_to_group("bullet")
 
 func _physics_process(delta: float) -> void:
 	position += velocity * delta  # 位置更新
