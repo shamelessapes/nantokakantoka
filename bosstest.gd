@@ -25,7 +25,9 @@ func _physics_process(delta: float) -> void:
 		
 func _ready():
 	$player.life_changed.connect($HUD.update_life_ui)
-	
+	var first_phase = phases[0]
+	await get_tree().create_timer(2.0).timeout
+	$karakasaobake.start_phase(first_phase)
 
 
 func start_next_phase():
@@ -38,10 +40,9 @@ func start_next_phase():
 	var next_phase = phases[current_phase_index]
 	print("次のフェーズ開始: ", next_phase)
 
-	# ボスに情報を渡す
 	var boss = $karakasaobake
 	if boss.has_method("start_phase"):
-		boss.start_phase(next_phase)
+		await boss.start_phase(next_phase)  # await を忘れずに！
 
 # ========================
 # ▼ 演出関数(cutin) ▼
@@ -52,8 +53,8 @@ func show_spell_cutin(name: String) -> void:
 	cutin.visible = true
 	wazamei.visible = true
 	$UI/ameamehurehure.text = name
-	$UI/AnimationPlayer.play("cutin_karakasa1")
-	await get_tree().create_timer(2.5).timeout  # 2秒間表示して…
+	$UI/AnimationPlayer.play("karakasa_cutin")
+	await get_tree().create_timer(2.5).timeout  
 	
 # ========================
 # ▼ 背景変更 ▼
