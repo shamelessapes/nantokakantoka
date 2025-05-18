@@ -8,18 +8,13 @@ func set_velocity(v: Vector2) -> void:
 
 func _ready():
 	add_to_group("bullet")
+	if position.y < -100:
+		queue_free()
 
 func _physics_process(delta: float) -> void:
 	position += velocity * delta  # 位置更新
 
-func _on_visible_on_screen_notifier_2d_screen_exited():
-	_on_disappear()
-	
-func _on_disappear():
-	Global.bullet_erase(global_position)
-	queue_free()
-
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):
 		area.take_damage()
-		_on_disappear()
+		queue_free()
