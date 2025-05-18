@@ -22,10 +22,6 @@ var rain_shot_count = 0
 var rain_shot_max = 30
 
 func _ready():
-	$Animation.play("default")
-	tween.tween_property(self, "position", Vector2(position.x, 200), 1.0) \
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.finished.connect(_on_arrival)
 	bullet_timer.stop()
 	rain_timer.wait_time = 0.3
 	rain_timer.one_shot = false

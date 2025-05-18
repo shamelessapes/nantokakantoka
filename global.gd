@@ -8,11 +8,11 @@ var is_hitstop = false
 @onready var bullet_erase_scene = preload("res://tscn/bullet_erase.tscn")
 
 # 弾消去＋エフェクト表示＋SE再生
-func bullet_erase(position: Vector2):
-	if bullet_erase_scene:
-		var effect = bullet_erase_scene.instantiate()
-		effect.position = position
-		get_tree().current_scene.add_child(effect)
+#func bullet_erase(position: Vector2):
+	#if bullet_erase_scene:
+		#var effect = bullet_erase_scene.instantiate()
+		#effect.position = position
+		#get_tree().current_scene.add_child(effect)
 
 
 # 汎用エフェクト・SE（例：ボス出現時など）

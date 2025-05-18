@@ -1,4 +1,4 @@
-extends Area2D #tekidan_1
+extends Area2D #tekidan_2
 
 @export var speed = 300
 var velocity = Vector2.ZERO

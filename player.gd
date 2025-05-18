@@ -15,14 +15,14 @@ extends Area2D
 @onready var explosion_scene = preload("res://tscn/explosion.tscn")  # 爆発エフェクトをロード
 @onready var shot_left = $shotL
 @onready var shot_right = $shotR
-@onready var hud = get_parent().get_node("HUD")
+@onready var hud = $HUD
 @onready var damage_flash = $flash/ColorRect
 var current_speed := speed     #見たまんま
 var verocity := Vector2.ZERO   #速度ベクトル
 var can_move := true          #壁に入ったらfalseにする
 var previous_position := Vector2.ZERO  #前の位置を記録しておく
 var shoot_cooldown := 0.08             # 弾を撃つ間隔（秒） 
-var homingshot_cooldown := 0.3         # ホーミング弾の感覚
+var homingshot_cooldown := 0.2        # ホーミング弾の感覚
 var shoot_timer := 0.0                # クールダウンタイマー　0以下になったら次の弾が打てる
 var homingshot_timer := 0.0          # ホーミング弾のクールダウンタイマー
 var invincible = false
@@ -37,13 +37,14 @@ signal player_dead
 func _ready() -> void:
 	update_life_ui(current_lives)
 	position = start_position  # 初期化時にセット
-
+	$HUD.update_life_ui(current_lives) 
+	damage_flash.visible = false
 
 
 
 # ライフ更新の関数
 func update_life_ui(lives: int):
-	hud.update_life_ui(lives)
+	life_changed.connect($HUD.update_life_ui)
 	blink_sprite = $AnimatedSprite2D  # 子ノードのスプライトを取得
 
 
@@ -173,13 +174,13 @@ func take_damage():
 	invincible = true               # 無敵オン
 	invincible_timer = invincible_time
 	current_lives -= 1  # ライフを減らす
+	emit_signal("life_changed", current_lives)
 	explode()
 	flash_screen()
 	player_damaged()
 	Global.apply_hitstop()
 	await hit_stop()                # 止める
 	position = start_position       # 初期位置へ
-	emit_signal("life_changed", current_lives) # ライフ表示変動
 	start_blink() # 点滅
 	
 	if current_lives <= 0:
@@ -216,12 +217,15 @@ func explode() -> void: #爆発処理
 
 	await get_tree().create_timer(0.05).timeout
 
-func flash_screen(): # 画面点滅
-	damage_flash.color.a = 1.0  # 半透明に一瞬する 透明度の調整はここでする
-	# アニメーション的にフェードアウト
+func flash_screen():
+	damage_flash.visible = true      # 点滅開始で見えるようにする
+	damage_flash.color.a = 0.8       # 透明度調整
 	var tween = create_tween()
-	tween.tween_property(damage_flash, "color:a", 0.0, 0.025).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
-		# 0.2秒光らす
+	tween.tween_property(damage_flash, "color:a", 0.0, 0.08).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
+	tween.connect("finished", Callable(self, "_on_flash_finished"))
+	
+func _on_flash_finished():
+	damage_flash.visible = false     # 点滅終わったら見えなくする
 func die():
 	emit_signal("player_dead")
 	queue_free()
