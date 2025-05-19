@@ -1,19 +1,22 @@
 extends Node
 
 # Singleton（AutoLoad）で使うことを想定
-
+var boss_dead_effect_scene = preload("res://tscn/boss_dying.tscn") 
 var is_hitstop = false
 
-# 弾消去エフェクト
-@onready var bullet_erase_scene = preload("res://tscn/bullet_erase.tscn")
+func _ready():
+	print("✅ Global.gd ready!", boss_dead_effect_scene)
 
-# 弾消去＋エフェクト表示＋SE再生
-#func bullet_erase(position: Vector2):
-	#if bullet_erase_scene:
-		#var effect = bullet_erase_scene.instantiate()
-		#effect.position = position
-		#get_tree().current_scene.add_child(effect)
 
+func play_boss_dead_effect(position: Vector2):
+	if boss_dead_effect_scene:
+		print("💥 爆発エフェクトを生成しに行きます at", position)
+		var effect = boss_dead_effect_scene.instantiate()
+		effect.global_position = position
+		get_tree().root.add_child(effect)  # ← global_position を使うなら root に！
+		print("✅ 爆発エフェクト生成 & 追加完了 at", position)
+	else:
+		print("❌ boss_dead_effect_scene が null！")
 
 # 汎用エフェクト・SE（例：ボス出現時など）
 func play_effect_and_sound(position: Vector2) -> void:

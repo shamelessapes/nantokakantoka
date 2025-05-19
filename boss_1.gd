@@ -66,6 +66,9 @@ func _ready():
 	be_invincible(3.0)
 	move_timer.connect("timeout", Callable(self, "_on_move_timer_timeout"))
 	rain_timer.connect("timeout", Callable(self, "_on_rain_timer_timeout"))
+	print("ボスのglobal_position:", global_position)
+
+	
 	
 #ーーーーーーーーーボス登場演出ーーーーーーーーーー
 	var tween = create_tween()
@@ -283,4 +286,5 @@ func shoot_bullets(count: int) -> void:
 # ========================
 func die():
 	print("ボス撃破")
+	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり
 	queue_free()  # ボスを消す（アニメーションや演出があるならそこに飛ばす）
