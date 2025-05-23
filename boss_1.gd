@@ -33,7 +33,11 @@ var phases = [
 	{ "type": "skill", "hp": 150, "duration": 30, "pattern": "skill_2", "name": "日照り雨" },
 ]
 func start_phase(phase_index: int):
-	# いま動いてるパターンあったら止める
+	var controller = get_parent()  # コントローラー（Node2Dとか）
+	if controller and controller.has_method("start_phase"):
+		var phase_data = phases[phase_index]  # ボス自身のphasesから取得
+		await controller.start_phase(phase_data)
+
 	if is_pattern_running:
 		is_pattern_running = false
 		if pattern_task != null:
@@ -122,6 +126,9 @@ func next_phase():
 	await get_tree().create_timer(1.0).timeout  # 少し待つ（これでループ終了を待つ）
 	await move_to(Vector2(634, 200))
 	current_phase += 1
+	var controller = get_parent()
+	if controller and controller.has_method("end_skill_phase"):
+		await controller.end_skill_phase()  # スキル背景フェードアウト呼び出し
 	if current_phase >= phases.size():
 		die()  # 全フェーズ終了（ゲームオーバーや勝利処理）
 	else:
