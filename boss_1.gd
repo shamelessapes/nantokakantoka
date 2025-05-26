@@ -7,6 +7,8 @@ extends CharacterBody2D
 @onready var shot_sound_player := $shotsound  # AudioStreamPlayerノード
 @onready var move_timer = $MoveTimer  # シーンにあるTimerノードを参照
 @onready var rain_timer = $rain_timer
+@onready var ui: SkillNameUI = get_node("../CanvasLayer")
+
 
 var current_phase = 0
 var current_hp = 1
@@ -33,7 +35,12 @@ var phases = [
 	{ "type": "skill", "hp": 150, "duration": 30, "pattern": "skill_2", "name": "日照り雨" },
 ]
 func start_phase(phase_index: int):
-	var controller = get_parent()  # コントローラー（Node2Dとか）
+	var phase : Dictionary = phases[current_phase]
+	
+	if phase["type"] == "skill":
+		await get_tree().get_current_scene().show_spell_cutin(phase["name"])
+		
+	var controller = get_parent() 
 	if controller and controller.has_method("start_phase"):
 		var phase_data = phases[phase_index]  # ボス自身のphasesから取得
 		await controller.start_phase(phase_data)
@@ -293,5 +300,6 @@ func shoot_bullets(count: int) -> void:
 # ========================
 func die():
 	print("ボス撃破")
+	ui.hide_skill_name()
 	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり
 	queue_free()  # ボスを消す（アニメーションや演出があるならそこに飛ばす）

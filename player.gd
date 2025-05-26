@@ -191,7 +191,7 @@ func start_blink(duration: float = 2.0):  # 二秒点滅
 	await get_tree().create_timer(duration).timeout
 	is_blinking = false
 
-func hit_stop(duration: float = 0.03) -> void:  # ここで停止時間調整
+func hit_stop(duration: float = 0.023) -> void:  # ここで停止時間調整
 	Engine.time_scale = 0.01
 	await get_tree().create_timer(duration, true).timeout
 	Engine.time_scale = 1.0

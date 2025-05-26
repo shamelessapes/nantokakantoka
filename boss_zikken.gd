@@ -3,6 +3,8 @@ extends Node2D
 
 @onready var fade_rect = $CanvasLayer/FadeRect
 @onready var skill_background = $CanvasLayer/Parallax2D4/SkillBackground
+@onready var ui: SkillNameUI = get_node("CanvasLayer")
+
 
 var skill_backgrounds = {
 	"あめあめふれふれ": "res://image/bgkarakasa .png",
@@ -25,21 +27,6 @@ func _physics_process(delta: float) -> void:
 		
 func _ready():
 	pass
-	
-# ========================
-# ▼ スペルカットイン演出 ▼
-# ========================
-func show_spell_cutin(name: String) -> void:
-	var boss = $karakasaobake
-	var cutin = boss.get_node("UI/cutin")
-	var wazamei = boss.get_node("UI/ameamehurehure")
-	cutin.visible = true
-	wazamei.visible = true
-	wazamei.text = name
-	boss.get_node("UI/AnimationPlayer").play("karakasa_cutin")
-	await get_tree().create_timer(2.5).timeout
-
-
 
 # ========================
 # ▼ スキル時背景 ▼
@@ -62,7 +49,10 @@ func start_phase(phase_data):
 		print("スキル背景のフェードイン完了")
 		await fade_in()
 		print("フェードイン終了")
+	if phase_data.has("name"):
+		ui.show_skill_name(phase_data.name)
 	else:
+		ui.hide_skill_name()
 		print("通常フェーズ: 背景は変更しない")
 
 
@@ -73,8 +63,6 @@ func end_skill_phase():
 	await tween.finished
 	skill_background.visible = false
 	skill_background.texture = null  # メモリ節約にもなる
-
-
 
 func change_background_with_fade(new_bg_path: String):
 	await fade_out()
@@ -98,8 +86,20 @@ func fade_in(duration := 0.5):
 	fade_rect.visible = false
 
 
-
-
+# ========================
+# ▼ スペルカットイン演出 ▼
+# ========================
+func show_spell_cutin(name: String) -> void:
+	var ui = get_node("UI")  # boss_zikken ルートから UI を取得
+	var cutin = ui.get_node("cutin")
+	var wazamei = ui.get_node("cutinlabel")
+	cutin.visible = true
+	wazamei.visible = true
+	wazamei.text = name
+	ui.get_node("AnimationPlayer").play("RESET")
+	await get_tree().create_timer(2.5).timeout
+	cutin.visible = false
+	wazamei.visible = false
 	
 # ========================
 # ▼ 背景変更 ▼
