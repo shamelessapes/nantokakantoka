@@ -1,12 +1,29 @@
 extends Node
 
-# Singleton（AutoLoad）で使うことを想定
 var boss_dead_effect_scene = preload("res://tscn/boss_dying.tscn") 
 var is_hitstop = false
+var shake_intensity: float = 0.0
+var camera_node: Camera2D  # 揺らすカメラを登録する用の変数
+var shake_timer: Timer  # タイマーを保存する変数
+var shaking: bool = false  # 揺れ中かどうかを判定するフラグ
+var original_position: Vector2  # 元の位置を保存する変数
+var score = 0  # スコアを保持する変数
+
+signal score_changed(new_score)
 
 func _ready():
 	print("✅ Global.gd ready!", boss_dead_effect_scene)
 
+# スコアを加算する関数
+func add_score(points: int) -> void:
+	score += points
+	emit_signal("score_changed", score)  # スコア変化を通知
+	print("スコア更新:", score)
+
+func reset_score() -> void:
+	score = 0
+	emit_signal("score_changed", score)
+	print("スコアをリセットしました")
 
 func play_boss_dead_effect(position: Vector2):
 	if boss_dead_effect_scene:
@@ -32,4 +49,33 @@ func apply_hitstop(duration := 0.1):
 	await get_tree().create_timer(duration).timeout
 	is_hitstop = false
 
-# TODO: 必要に応じてここに追加のグローバル関数・変数を定義
+# カメラを登録する
+func register_camera(cam: Camera2D) -> void:
+	camera_node = cam
+	original_position = camera_node.position
+
+# 揺れを開始する
+func shake_screen(intensity: float = 5.0, duration: float = 0.5) -> void:
+	if camera_node == null:
+		push_error("カメラが登録されてないよ！")
+		return
+
+	shake_intensity = intensity
+	shaking = true
+
+	# タイマー作成
+	shake_timer = Timer.new()
+	shake_timer.wait_time = duration
+	shake_timer.one_shot = true
+	add_child(shake_timer)
+
+	shake_timer.timeout.connect(_on_shake_timeout)
+	shake_timer.start()
+
+# 揺れ終了処理
+func _on_shake_timeout() -> void:
+	shaking = false
+	if shake_timer:
+		shake_timer.queue_free()
+	if camera_node:
+		camera_node.position = original_position

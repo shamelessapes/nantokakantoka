@@ -26,7 +26,7 @@ func _physics_process(delta: float) -> void:
 	$CanvasLayer/Parallax2D4.scroll_offset.y += 2
 		
 func _ready():
-	pass
+	Global.register_camera($Camera2D)  # 自分のカメラノードを登録
 
 # ========================
 # ▼ スキル時背景 ▼

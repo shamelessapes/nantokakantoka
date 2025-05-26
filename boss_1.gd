@@ -5,8 +5,12 @@ extends CharacterBody2D
 @onready var hp_bar = $UI/enemyHP
 @onready var invincible_timer = $invincible_timer  # Timerノードへの参照
 @onready var shot_sound_player := $shotsound  # AudioStreamPlayerノード
+@onready var shotsound2_play := $shotsound2
+@onready var cutin_sound := $cutinsound
 @onready var move_timer = $MoveTimer  # シーンにあるTimerノードを参照
 @onready var rain_timer = $rain_timer
+@onready var phase_timer = $Timer
+@onready var time_bar = $UI/timelimit
 @onready var ui: SkillNameUI = get_node("../CanvasLayer")
 
 
@@ -18,6 +22,7 @@ var last_damage_time := -1.0
 var is_pattern_running = false
 var can_shoot = true
 var pattern_task = null
+var time_remaining = 0
 
 
 var move_steps = [
@@ -34,10 +39,13 @@ var phases = [
 	{ "type": "normal", "hp": 100, "duration": 30, "pattern": "pattern_2" },
 	{ "type": "skill", "hp": 150, "duration": 30, "pattern": "skill_2", "name": "日照り雨" },
 ]
+
 func start_phase(phase_index: int):
-	var phase : Dictionary = phases[current_phase]
+	var phase : Dictionary = phases[phase_index]
+
 	
 	if phase["type"] == "skill":
+		cutin_sound.play()
 		await get_tree().get_current_scene().show_spell_cutin(phase["name"])
 		
 	var controller = get_parent() 
@@ -54,7 +62,12 @@ func start_phase(phase_index: int):
 	current_phase = phase_index  
 	current_hp = phases[current_phase]["hp"]
 	update_hp_bar()
+	update_timelimit_bar(phase_index)
 	is_pattern_running = false 
+	
+	time_remaining = phase["duration"]
+	phase_timer.wait_time = 1.0  # 1秒ごとに減らす
+	phase_timer.start()
 	
 	var pattern_name = phases[phase_index]["pattern"]
 	match pattern_name:
@@ -70,6 +83,22 @@ func start_phase(phase_index: int):
 		"skill_2":
 			start_skill_2()
 			print("フェーズ4スタート")
+	
+		# タイマー設定
+
+
+func _on_Timer_timeout():
+	# 1秒ごとにタイマー更新
+	time_remaining -= 1
+	time_bar.value = time_remaining
+	
+	if time_remaining <= 0:
+		print("時間切れ！フェーズ強制終了！")
+		phase_timer.stop()
+		next_phase()
+	
+	
+
 #ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 func _ready():
@@ -77,9 +106,8 @@ func _ready():
 	be_invincible(3.0)
 	move_timer.connect("timeout", Callable(self, "_on_move_timer_timeout"))
 	rain_timer.connect("timeout", Callable(self, "_on_rain_timer_timeout"))
-	print("ボスのglobal_position:", global_position)
+	phase_timer.connect("timeout", Callable(self, "_on_Timer_timeout"))
 
-	
 	
 #ーーーーーーーーーボス登場演出ーーーーーーーーーー
 	var tween = create_tween()
@@ -90,6 +118,12 @@ func _ready():
 func update_hp_bar():
 	$UI/enemyHP.max_value = phases[current_phase]["hp"]  # フェーズごとの最大HP
 	$UI/enemyHP.value = current_hp 
+	
+# ProgressBar設定
+func update_timelimit_bar(phase_index: int):
+	var phase = phases[phase_index]
+	time_bar.max_value = phase["duration"]
+	time_bar.value = phase["duration"]
 	
 func be_invincible(time: float) -> void:
 	invincible = true
@@ -121,6 +155,7 @@ func take_damage(amount: int):
 	last_damage_time = damage_cooldown
 
 	if current_hp == 0:
+		phase_timer.stop()
 		next_phase()
 # ========================
 # ▼ フェーズ移行時
@@ -141,8 +176,9 @@ func next_phase():
 	else:
 		current_hp = phases[current_phase]["hp"]
 		update_hp_bar()
+		update_timelimit_bar(current_phase)
 		start_phase(current_phase)  # 攻撃パターン切り替えなど
-		be_invincible(2.0)  # フェーズ切り替え時に無敵
+		be_invincible(4.0)  # フェーズ切り替え時に無敵
 		
 		
 # ========================
@@ -189,10 +225,11 @@ func start_pattern_1():
 # ========================
 func start_skill_1() -> void:
 	is_pattern_running = true
+	phase_timer.start()
 	print("フェーズ２を始めるよ")
 
 	# 弾降らせ続けるループ開始
-	while current_hp > 0:
+	while current_hp > 0 and time_remaining > 0:
 		shoot_rain_bullet()
 		await get_tree().create_timer(0.2).timeout
 
@@ -207,6 +244,7 @@ func start_pattern_2():
 	var my_phase = current_phase
 	is_pattern_running = true
 	can_shoot = true
+	phase_timer.start()
 	print("フェーズ3開始: hp =", current_hp)
 
 	while is_pattern_running and current_hp > 0:
@@ -239,6 +277,7 @@ func start_pattern_2():
 func start_skill_2() -> void:
 	is_pattern_running = true
 	can_shoot = true
+	phase_timer.start()
 	print("フェーズ4開始: hp =", current_hp)
 	call_deferred("rain_bullet_loop")  
 	await circle_bullet_loop()         
@@ -278,6 +317,7 @@ func shoot_bullet1(angle_offset := 0.0):
 		get_parent().add_child(bullet)  # より安全な追加方法
 		
 func shoot_rain_bullet():
+	shotsound2_play.play()
 	var bullet = bullet2_scene.instantiate()
 	var random_x = randf() * (1000 - 280) + 280  # 280～1000までのランダムX座標
 	bullet.position = Vector2(random_x, 0)  # 画面の上端
@@ -301,5 +341,7 @@ func shoot_bullets(count: int) -> void:
 func die():
 	print("ボス撃破")
 	ui.hide_skill_name()
+	Global.shake_screen(10.0, 0.5)  # 強さ8、0.3秒間
+	Global.add_score(100)
 	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり
 	queue_free()  # ボスを消す（アニメーションや演出があるならそこに飛ばす）
