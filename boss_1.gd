@@ -162,6 +162,7 @@ func take_damage(amount: int):
 # ========================
 func next_phase():
 	print("フェーズ移動します")
+	Global.add_time_bonus_score(time_remaining)
 	is_pattern_running = false 
 	can_shoot = false
 	rain_timer.stop()
@@ -342,6 +343,6 @@ func die():
 	print("ボス撃破")
 	ui.hide_skill_name()
 	Global.shake_screen(10.0, 0.5)  # 強さ8、0.3秒間
-	Global.add_score(100)
+	Global.add_score(10000)
 	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり
 	queue_free()  # ボスを消す（アニメーションや演出があるならそこに飛ばす）

@@ -24,6 +24,22 @@ func reset_score() -> void:
 	score = 0
 	emit_signal("score_changed", score)
 	print("スコアをリセットしました")
+	
+func add_time_bonus_score(time_remaining: float):
+	var bonus = int(time_remaining * 100)  # 例：1秒ごとに100点
+	score += bonus
+	emit_signal("score_changed", score)
+
+
+func set_pause_mode_for_scene(root_node: Node):
+	# ゲーム中のノードを一括でPAUSABLEにする例
+	for node in root_node.get_children():
+		if node.is_in_group("pausable"):
+			node.pause_mode = Node.PROCESS_MODE_PAUSABLE
+		elif node.is_in_group("UI"):
+			node.pause_mode = Node.PROCESS_MODE_ALWAYS
+		# 必要に応じて他の条件も追加
+
 
 func play_boss_dead_effect(position: Vector2):
 	if boss_dead_effect_scene:
