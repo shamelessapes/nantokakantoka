@@ -19,11 +19,12 @@ func toggle_pause():
 	if get_tree().paused:
 		get_tree().paused = false
 		$PauseMenu.visible = false  # PauseMenuノードを非表示
-		$PauseMenu/ColorRect.visible = false
+
 	else:
 		get_tree().paused = true
 		$PauseMenu.visible = true   # PauseMenuノードを表示
-		$PauseMenu/ColorRect.visible = true
+
+
 
 
 # --------------------各フェーズメモ--------------------

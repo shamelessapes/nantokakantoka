@@ -31,6 +31,7 @@ var invincible_timer = 0.0
 var blink_speed = 5.0                # 点滅の速さ（大きいほどはやい）
 var blink_sprite: AnimatedSprite2D
 var is_blinking = false  # ← 点滅するかどうかのスイッチ
+var continue_scene = preload("res://tscn/continue.tscn").instantiate()
 signal life_changed(lives)
 signal player_dead
 
@@ -39,7 +40,7 @@ func _ready() -> void:
 	position = start_position  # 初期化時にセット
 	$HUD.update_life_ui(current_lives) 
 	damage_flash.visible = false
-
+	add_to_group("player")
 
 
 # ライフ更新の関数
@@ -226,6 +227,17 @@ func flash_screen():
 	
 func _on_flash_finished():
 	damage_flash.visible = false     # 点滅終わったら見えなくする
+	
 func die():
 	emit_signal("player_dead")
-	queue_free()
+	hide()
+	get_tree().paused = true  # ゲームを一時停止（UIは Process Always なら動く）
+
+	var continue_scene = preload("res://tscn/continue.tscn").instantiate()
+	continue_scene.process_mode = Node.PROCESS_MODE_ALWAYS  # 念のため
+	get_tree().get_root().add_child(continue_scene)
+	continue_scene.show()  # ← これがないと表示されない！
+
+	print("🧪 continue_scene を add_child したよ")
+	print("pause mode:", continue_scene.process_mode)
+	print("visible:", continue_scene.visible)

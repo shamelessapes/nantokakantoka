@@ -137,6 +137,12 @@ func _on_invincible_timer_timeout() -> void:
 func _process(delta):
 	if last_damage_time >= 0:
 		last_damage_time -= delta
+		if !get_tree().paused and !is_pattern_running:
+		# skill_1のときだけ再開
+			if phases[current_phase]["pattern"] == "skill_1":
+				print("ポーズ解除されたからスキル再開！")
+				start_skill_1()
+		
 
 func take_damage(amount: int):
 	if invincible:
@@ -225,18 +231,25 @@ func start_pattern_1():
 # ▼ あめあめふれふれのパターン処理 
 # ========================
 func start_skill_1() -> void:
+	if is_pattern_running:
+		return  # すでに動いてたら何もしない
+
 	is_pattern_running = true
 	phase_timer.start()
 	print("フェーズ２を始めるよ")
 
-	# 弾降らせ続けるループ開始
 	while current_hp > 0 and time_remaining > 0:
+		if get_tree().paused:
+			print("ポーズ中だから弾撃ち停止！")
+			break
+
 		shoot_rain_bullet()
 		await get_tree().create_timer(0.2).timeout
 
 	is_pattern_running = false
 	rain_timer.stop()
 	print("skill_1パターン終了")
+
 	
 # ========================
 # ▼ 通常攻撃2のパターン処理 
@@ -276,25 +289,43 @@ func start_pattern_2():
 # ▼ 日照り雨のパターン処理 
 # ========================
 func start_skill_2() -> void:
+	if is_pattern_running:
+		return  # 多重実行防止！
+
 	is_pattern_running = true
 	can_shoot = true
 	phase_timer.start()
 	print("フェーズ4開始: hp =", current_hp)
-	call_deferred("rain_bullet_loop")  
-	await circle_bullet_loop()         
+
+	call_deferred("rain_bullet_loop")
+	await circle_bullet_loop()
+
 	is_pattern_running = false
 	rain_timer.stop()
 	print("skill_2パターン終了")
 
+
 func rain_bullet_loop() -> void:
 	while current_hp > 0:
+		if get_tree().paused:
+			await wait_until_unpaused()
 		shoot_rain_bullet()
 		await get_tree().create_timer(0.3).timeout
 
+
 func circle_bullet_loop() -> void:
 	while current_hp > 0:
+		if get_tree().paused:
+			await wait_until_unpaused()
 		await shoot_bullets(2)
 		await get_tree().create_timer(2.0).timeout
+
+
+# ポーズ解除まで待機する共通関数
+func wait_until_unpaused() -> void:
+	while get_tree().paused:
+		await get_tree().process_frame
+
 # ========================
 # ▼ 弾発射処理 ▼
 # ========================

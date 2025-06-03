@@ -11,8 +11,8 @@ var score = 0  # スコアを保持する変数
 
 signal score_changed(new_score)
 
-func _ready():
-	print("✅ Global.gd ready!", boss_dead_effect_scene)
+#func _ready():
+	#print("✅ Global.gd ready!", boss_dead_effect_scene)
 
 # スコアを加算する関数
 func add_score(points: int) -> void:
@@ -38,7 +38,6 @@ func set_pause_mode_for_scene(root_node: Node):
 			node.pause_mode = Node.PROCESS_MODE_PAUSABLE
 		elif node.is_in_group("UI"):
 			node.pause_mode = Node.PROCESS_MODE_ALWAYS
-		# 必要に応じて他の条件も追加
 
 
 func play_boss_dead_effect(position: Vector2):
