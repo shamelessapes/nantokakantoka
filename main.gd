@@ -10,3 +10,16 @@ func _physics_process(delta: float) -> void:
 	$bg/Parallax2D.scroll_offset.y += 25
 	$bg/Parallax2D2.scroll_offset.y += 12
 	$bg/Parallax2D3.scroll_offset.y += 2
+
+func _unhandled_input(event):
+	if event.is_action_pressed("pause"):
+		toggle_pause()
+
+func toggle_pause():
+	if get_tree().paused:
+		get_tree().paused = false
+		$PauseMenu.visible = false  # PauseMenuノードを非表示
+
+	else:
+		get_tree().paused = true
+		$PauseMenu.visible = true   # PauseMenuノードを表示
