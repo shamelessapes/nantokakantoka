@@ -9,15 +9,26 @@ var is_dead := false  # 死亡フラグ
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
 
+var is_invincible: bool = false
+
+func _on_invincibility_end():
+	is_invincible = false
+
+
 func _ready():
 	$animationsprite2D.play("zako1")
 	zakodead_player.stream = zakodead_sound
 
-func _process(delta):
-	position.y += speed * delta
+var can_move := true  # ← これを追加
 
+func _process(delta):
+	if can_move:
+		position.y += speed * delta
 	if position.y > 1000:
 		queue_free()
+		
+func _resume_move():
+	can_move = true
 		
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):

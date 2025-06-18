@@ -1,81 +1,155 @@
-extends Node2D                                             # ルートは Node2D
+extends Node2D
 
-# === フェーズ1（0〜20 秒）用 ===
-@export var phase1_scene: PackedScene           # フェーズ1で出す敵シーン
-@export var phase1_interval: float = 1.5        # フェーズ1の出現間隔（秒）
+@export var phase1_scene: PackedScene
+@export var phase2_scene: PackedScene
+@export var phase3_scene: PackedScene
 
-# === フェーズ2（20〜40 秒）用 ===
-@export var phase2_scene: PackedScene           # フェーズ2で出す敵シーン
-@export var phase2_interval: float = 1.5        # フェーズ2の出現間隔（秒）
+@export var min_x: float = 280.0
+@export var max_x: float = 910.0
+@export var spawn_y: float = 0.0
 
-# === フェーズ3（40 秒以降）用 ===
-@export var phase3_scene: PackedScene           # フェーズ3で出す敵シーン
-@export var phase3_interval: float = 2.0        # フェーズ3の出現間隔（秒）
+@onready var animation_player: AnimationPlayer = get_parent().get_node("CanvasLayer/AnimationPlayer")
 
-# === 出現範囲 ===
-@export var min_x: float = 280.0                # X 最小
-@export var max_x: float = 710.0                # X 最大
-@export var spawn_y: float = 0.0                # Y 固定（上端）
+const PHASE2_START_TIME := 15.0
+const PHASE3_START_TIME := 40.0
+const PHASE4_START_TIME := 60.0
+const PHASE4_END_TIME := 75.0
 
-const PHASE2_START_TIME := 20.0                 # Phase2 開始秒
-const PHASE3_START_TIME := 40.0                 # Phase3 開始秒
+var elapsed_time := 0.0
+var current_phase := 1
+var spawn_enabled := false
+const SPAWN_DELAY := 3.0
 
-var elapsed_time := 0.0                         # 経過時間
-var timer_phase1 := 0.0                         # フェーズ1用タイマー
-var timer_phase2 := 0.0                         # フェーズ2用タイマー
-var timer_phase3 := 0.0                         # フェーズ3用タイマー
-var current_phase := 1                          # 今のフェーズ (1 / 2 / 3)
-var spawn_enabled := false                      # 出現許可フラグ（最初は false）
-const SPAWN_DELAY := 3.0                        # 出現までの待機秒数
+var waiting_for_phase2 := false
+var phase2_wait_timer := 0.0
+const ANIMATION_WAIT_TIME := 5.0
 
+# フェーズごとのタイマー
+var timer_phase1 := 0.0
+var timer_phase2 := 0.0
+var timer_phase3 := 0.0
+var phase4_row_timer := 0.0
+var phase4_active := false
 
-func _process(delta: float) -> void:            # 毎フレーム処理
-	elapsed_time += delta                       # 経過時間を進める
-	# 最初の3秒間は何も出さない
+# 一列に出す敵の設定
+const PHASE4_ROW_INTERVAL := 3.0
+const PHASE4_ENEMY_COUNT := 9
+const PHASE4_IMMUNITY_TIME := 0.5
+const PHASE4_ROW_PAUSE_Y := 100.0
+const PHASE4_FINAL_Y := 300.0
+const PHASE4_MOVE_DURATION := 1.0
+const PHASE4_DESCEND_DELAY := 0.2  # 右から順に降ろす遅延
+
+func _process(delta: float) -> void:
+	elapsed_time += delta
+
 	if not spawn_enabled:
-		elapsed_time += delta
 		if elapsed_time >= SPAWN_DELAY:
-			spawn_enabled = true  # 3秒経過後に敵出現開始
-			elapsed_time = 0.0    # 経過時間をリセットして Phase 管理開始
-		return  # 敵出現処理はスキップ
+			spawn_enabled = true
+			elapsed_time = 0.0
+		return
 
-	# ── フェーズ移行判定 ──
-	if current_phase == 1 and elapsed_time >= PHASE2_START_TIME:
-		current_phase = 2                       # Phase2 へ移行
-		timer_phase2 = 0.0                      # Phase2 タイマー初期化
-	elif current_phase == 2 and elapsed_time >= PHASE3_START_TIME:
-		current_phase = 3                       # Phase3 へ移行
-		timer_phase2 = 0.0                      # 旧タイマー再リセット
-		timer_phase3 = 0.0                      # Phase3 タイマー初期化
+	# フェーズ1 → 2 のアニメ演出
+	if current_phase == 1 and elapsed_time >= PHASE2_START_TIME and not waiting_for_phase2:
+		waiting_for_phase2 = true
+		phase2_wait_timer = ANIMATION_WAIT_TIME
+		animation_player.play("stage1")
+		return
 
-	# ── Phase1 処理 ──
+	if waiting_for_phase2:
+		phase2_wait_timer -= delta
+		if phase2_wait_timer <= 0.0:
+			waiting_for_phase2 = false
+			current_phase = 2
+			timer_phase2 = 0.0
+		else:
+			return
+
+	if current_phase == 2 and elapsed_time >= PHASE3_START_TIME:
+		current_phase = 3
+		timer_phase2 = INF
+		timer_phase3 = 0.0
+
+	if current_phase == 3 and elapsed_time >= PHASE4_START_TIME:
+		current_phase = 4
+		timer_phase3 = INF
+		phase4_active = true
+		phase4_row_timer = 0.0
+
+	if current_phase == 4:
+		if elapsed_time >= PHASE4_END_TIME:
+			phase4_active = false
+			current_phase = 5
+		elif phase4_active:
+			phase4_row_timer -= delta
+			if phase4_row_timer <= 0.0:
+				_spawn_phase4_row()
+				phase4_row_timer = PHASE4_ROW_INTERVAL
+
+	# フェーズ1の通常出現
 	if current_phase == 1:
 		timer_phase1 -= delta
 		if timer_phase1 <= 0.0:
 			_spawn_enemy(phase1_scene)
-			timer_phase1 = phase1_interval
+			timer_phase1 = 1.5
 
-	# ── Phase2 敵（Phase2 と Phase3 で継続） ──
-	if current_phase >= 2:
+	# フェーズ2
+	if current_phase == 2:
 		timer_phase2 -= delta
 		if timer_phase2 <= 0.0:
 			_spawn_enemy(phase2_scene)
-			timer_phase2 = phase2_interval
+			timer_phase2 = 1.5
 
-	# ── Phase3 敵（Phase3 のみ） ──
+	# フェーズ3
 	if current_phase == 3:
 		timer_phase3 -= delta
 		if timer_phase3 <= 0.0:
 			_spawn_enemy(phase3_scene)
-			timer_phase3 = phase3_interval
+			timer_phase3 = 2.0
 
-# === 敵を出現させる共通関数 ===
 func _spawn_enemy(scene: PackedScene) -> void:
-	if scene == null:                           # シーン未設定なら何もしない
+	if scene == null:
 		return
-	var enemy := scene.instantiate()            # 敵インスタンス生成
-	enemy.position = Vector2(                   # 乱数で X を決めて
-		randf_range(min_x, max_x),              #   ……ここが X
-		spawn_y                                 #   ……ここが Y（固定）
+	var enemy := scene.instantiate()
+	enemy.position = Vector2(
+		randf_range(min_x, max_x),
+		spawn_y
 	)
-	get_parent().add_child(enemy)               # ステージに追加
+	get_parent().add_child(enemy)
+
+#------フェーズ4------
+func _spawn_phase4_row():
+	if phase1_scene == null:
+		return
+	var step := (max_x - min_x) / (PHASE4_ENEMY_COUNT - 1)
+	for i in range(PHASE4_ENEMY_COUNT):
+		var enemy := phase1_scene.instantiate()
+		enemy.can_move = false  # ← ここで止める
+		enemy.hp = 25
+		var x := min_x + i * step
+		enemy.position = Vector2(x, spawn_y)
+		enemy.set("is_invincible", true)
+		get_parent().add_child(enemy)
+
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_SINE)
+		tween.set_ease(Tween.EASE_OUT)
+
+# y = 100 まで一列に並ぶ（1秒）
+		tween.tween_property(enemy, "position", Vector2(x, 100), 1.0)
+
+# 順番に y=300 まで降下（1秒後に順次）
+		var total_delay = 1.0 + i * 0.2  # 1秒後に右から順に落ちる
+		tween.tween_property(enemy, "position", Vector2(x, 1000), 3.0).set_delay(total_delay)
+
+# Tween終了後に移動再開
+		tween.tween_callback(Callable(enemy, "_resume_move")).set_delay(total_delay + 1.0)
+
+
+		# 無敵解除タイマー
+		var timer := Timer.new()
+		timer.wait_time = PHASE4_IMMUNITY_TIME
+		timer.one_shot = true
+		timer.connect("timeout", Callable(enemy, "_on_invincibility_end"))
+		enemy.add_child(timer)
+		timer.start()
