@@ -11,6 +11,7 @@ var skill_backgrounds = {
 	"日照り雨": "res://image/bgkarakasa .png"
 }
 
+
 func _unhandled_input(event):
 	if event.is_action_pressed("pause"):
 		toggle_pause()
@@ -41,6 +42,7 @@ func _physics_process(delta: float) -> void:
 	$CanvasLayer/Parallax2D4.scroll_offset.y += 2
 		
 func _ready():
+	Global.fade_in()
 	Global.register_camera($Camera2D)  # 自分のカメラノードを登録
 
 # ========================

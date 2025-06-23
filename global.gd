@@ -30,6 +30,21 @@ func add_time_bonus_score(time_remaining: float):
 	score += bonus
 	emit_signal("score_changed", score)
 
+var saved_lives: int = -1  # -1 なら未保存（初期化判定に使う）
+
+# HPを保存する
+func save_current_lives(lives: int):
+	saved_lives = lives
+	print("💾 HP保存: ", lives)
+
+# プレイヤーにHPを読み込ませる
+func load_current_lives(player):
+	if saved_lives != -1:
+		player.current_lives = saved_lives
+		print("📤 HP復元: ", saved_lives)
+	else:
+		print("📤 HP復元なし（初期値使用）")
+
 
 func set_pause_mode_for_scene(root_node: Node):
 	# ゲーム中のノードを一括でPAUSABLEにする例
@@ -94,3 +109,53 @@ func _on_shake_timeout() -> void:
 		shake_timer.queue_free()
 	if camera_node:
 		camera_node.position = original_position
+
+
+# --- フェード用変数
+var fade_layer := CanvasLayer.new()
+var color_rect := ColorRect.new()
+
+func _ready():
+	# フェード用ノードの構築
+	fade_layer.layer = 100  # レイヤー順（UIより上に）
+	add_child(fade_layer)
+
+	color_rect.name = "FadeOverlay"
+	color_rect.color = Color.WHITE
+	color_rect.anchor_left = 0.0
+	color_rect.anchor_top = 0.0
+	color_rect.anchor_right = 1.0
+	color_rect.anchor_bottom = 1.0
+	color_rect.modulate.a = 0.0  # 最初は透明
+	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE  # マウスイベント無視（クリック透過）
+	color_rect.z_index = 1  # UIより前面に来るようにする（念のため）
+	color_rect.z_as_relative = false  # グローバルなz_indexとして扱う
+	color_rect.size_flags_horizontal = Control.SIZE_FILL
+	color_rect.size_flags_vertical = Control.SIZE_FILL
+	color_rect.size = get_viewport().get_visible_rect().size
+
+	fade_layer.add_child(color_rect)
+
+	call_deferred("_resize_color_rect")
+
+func _resize_color_rect():
+	await get_tree().process_frame
+	color_rect.size = get_viewport().get_visible_rect().size
+
+# --- フェードアウトしてシーン遷移
+func change_scene_with_fade(path: String) -> void:
+	color_rect.modulate.a = 0.0
+	color_rect.show()
+	var tween = create_tween()
+	tween.tween_property(color_rect, "modulate:a", 1.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	await tween.finished
+	get_tree().change_scene_to_file(path)
+
+# --- フェードイン（画面表示開始時用）
+func fade_in() -> void:
+	color_rect.modulate.a = 1.0
+	color_rect.show()
+	var tween = create_tween()
+	tween.tween_property(color_rect, "modulate:a", 0.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	await tween.finished
+	color_rect.hide()

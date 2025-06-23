@@ -22,13 +22,14 @@ func _ready():
 func on_yes_pressed():
 	var players = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
-		player = players[0]
+		var player = players[0]
 		print("コンティニューするよ！")
 		Global.reset_score()
 		get_tree().paused = false
 		await get_tree().create_timer(0.1).timeout  # 少し待つ
 		player.current_lives += 3
 		player.emit_signal("life_changed", player.current_lives)
+		Global.save_current_lives(player.current_lives)  # ← 修正ここ！
 		player.show()
 		player.start_blink()
 		player.invincible = true

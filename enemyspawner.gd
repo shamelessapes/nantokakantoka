@@ -80,11 +80,15 @@ func _process(delta: float) -> void:
 		if elapsed_time >= PHASE4_END_TIME:
 			phase4_active = false
 			current_phase = 5
+			await get_tree().create_timer(3.0).timeout  # 3秒待機
+					# 遷移を deferred 呼び出し
+			call_deferred("_go_to_boss_scene")
 		elif phase4_active:
 			phase4_row_timer -= delta
 			if phase4_row_timer <= 0.0:
 				_spawn_phase4_row()
 				phase4_row_timer = PHASE4_ROW_INTERVAL
+				
 
 	# フェーズ1の通常出現
 	if current_phase == 1:
@@ -153,3 +157,7 @@ func _spawn_phase4_row():
 		timer.connect("timeout", Callable(enemy, "_on_invincibility_end"))
 		enemy.add_child(timer)
 		timer.start()
+		
+		
+func _go_to_boss_scene():
+	await Global.change_scene_with_fade("res://tscn/boss_zikken.tscn")

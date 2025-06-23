@@ -103,7 +103,7 @@ func _on_Timer_timeout():
 
 func _ready():
 	$Animation.play("default")
-	be_invincible(3.0)
+	be_invincible(6.0)
 	move_timer.connect("timeout", Callable(self, "_on_move_timer_timeout"))
 	rain_timer.connect("timeout", Callable(self, "_on_rain_timer_timeout"))
 	phase_timer.connect("timeout", Callable(self, "_on_Timer_timeout"))
@@ -113,7 +113,9 @@ func _ready():
 	var tween = create_tween()
 	tween.tween_property(self, "position", Vector2(position.x, 200), 1.0) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)  # 上からスーッと降りる演出
-	tween.finished.connect(func(): start_phase(current_phase))
+	await tween.finished  # Tweenが終わるのを待つ
+	await get_tree().create_timer(3.0).timeout  # 3秒待つ
+	start_phase(current_phase)  # フェーズ開始！
 	
 func update_hp_bar():
 	$UI/enemyHP.max_value = phases[current_phase]["hp"]  # フェーズごとの最大HP

@@ -36,6 +36,7 @@ signal life_changed(lives)
 signal player_dead
 
 func _ready() -> void:
+	Global.load_current_lives(self)
 	update_life_ui(current_lives)
 	position = start_position  # 初期化時にセット
 	$HUD.update_life_ui(current_lives) 
@@ -175,6 +176,7 @@ func take_damage():
 	invincible = true               # 無敵オン
 	invincible_timer = invincible_time
 	current_lives -= 1  # ライフを減らす
+	Global.save_current_lives(current_lives)
 	emit_signal("life_changed", current_lives)
 	explode()
 	flash_screen()
