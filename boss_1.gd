@@ -6,7 +6,6 @@ extends CharacterBody2D
 @onready var invincible_timer = $invincible_timer  # Timerノードへの参照
 @onready var shot_sound_player := $shotsound  # AudioStreamPlayerノード
 @onready var shotsound2_play := $shotsound2
-@onready var cutin_sound := $cutinsound
 @onready var move_timer = $MoveTimer  # シーンにあるTimerノードを参照
 @onready var rain_timer = $rain_timer
 @onready var phase_timer = $Timer
@@ -25,6 +24,8 @@ var pattern_task = null
 var time_remaining = 0
 var dialogue_connected := false  # 一度だけ接続するためのフラグ
 var started_phase_index := -1
+var resumed_skill_1 = false
+signal battle_ended  # 戦闘終了のシグナル
 
 
 var move_steps = [
@@ -43,21 +44,17 @@ var phases = [
 ]
 
 func start_phase(phase_index: int):
+	resumed_skill_1 = false  # 各フェーズ開始時にリセット
 	if phase_index == started_phase_index:
 		print("⚠️ 同じフェーズが二重に呼ばれたのでキャンセル")
 		return
 	started_phase_index = phase_index
 	var phase : Dictionary = phases[phase_index]
 
-	
-	if phase["type"] == "skill":
-		cutin_sound.play()
-		await get_tree().get_current_scene().show_spell_cutin(phase["name"])
-		
-	var controller = get_parent() 
-	if controller and controller.has_method("start_phase"):
-		var phase_data = phases[phase_index]  # ボス自身のphasesから取得
-		await controller.start_phase(phase_data)
+	# 親の演出だけ呼び出す（攻撃パターンはここでは呼ばない）
+	var controller = get_parent()
+	if controller and controller.has_method("start_phase_effects"):
+		await controller.start_phase_effects(phase)
 
 	if is_pattern_running:
 		is_pattern_running = false
@@ -89,8 +86,7 @@ func start_phase(phase_index: int):
 		"skill_2":
 			start_skill_2()
 			print("フェーズ4スタート")
-	
-		# タイマー設定
+
 
 
 func _on_Timer_timeout():
@@ -112,7 +108,7 @@ func _ready():
 	$Animation.play("default")
 	$UI/timelimit.visible = false
 	$UI/enemyHP.visible = false
-	be_invincible(6.0)
+	be_invincible(3.0)
 	move_timer.connect("timeout", Callable(self, "_on_move_timer_timeout"))
 	rain_timer.connect("timeout", Callable(self, "_on_rain_timer_timeout"))
 	phase_timer.connect("timeout", Callable(self, "_on_Timer_timeout"))
@@ -136,17 +132,18 @@ func _on_drop_finished():
 	wait_timer.timeout.connect(_on_wait_finished)
 
 func _on_wait_finished():
-	# dialoguemanagerのシグナルを受け取って待つ
 	var dm = get_node("../dialoguemanager")
-	dm.dialogue_finished.connect(_on_dialogue_finished)
-	dialogue_connected = true
+	if not dialogue_connected:
+		dm.dialogue_finished.connect(_on_dialogue_finished)
+		dialogue_connected = true
 	
 func _on_dialogue_finished():
 	print("関数が呼ばれた")
 	$UI/timelimit.visible = true
 	$UI/enemyHP.visible = true
 	start_phase(current_phase)
-	be_invincible(3.0)
+	be_invincible(2.0)
+	#一時停止解除後とフェーズ開始時に無敵になる不具合アリ
 	
 func update_hp_bar():
 	$UI/enemyHP.max_value = phases[current_phase]["hp"]  # フェーズごとの最大HP
@@ -171,9 +168,10 @@ func _process(delta):
 	if last_damage_time >= 0:
 		last_damage_time -= delta
 		if !get_tree().paused and !is_pattern_running:
-		# skill_1のときだけ再開
-			if phases[current_phase]["pattern"] == "skill_1":
+			# skill_1のときだけ再開（ただし一度だけ）
+			if phases[current_phase]["pattern"] == "skill_1" and !resumed_skill_1:
 				print("ポーズ解除されたからスキル再開！")
+				resumed_skill_1 = true
 				start_skill_1()
 		
 
@@ -409,4 +407,5 @@ func die():
 	Global.shake_screen(10.0, 0.5)  # 強さ8、0.3秒間
 	Global.add_score(10000)
 	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり
+	emit_signal("battle_ended")
 	queue_free()  # ボスを消す（アニメーションや演出があるならそこに飛ばす）

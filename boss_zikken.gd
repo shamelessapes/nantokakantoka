@@ -14,7 +14,10 @@ var skill_backgrounds = {
 
 func _unhandled_input(event):
 	if event.is_action_pressed("pause"):
+		if Global.is_talking:
+			return  # 会話中は一時停止無効
 		toggle_pause()
+
 
 func toggle_pause():
 	if get_tree().paused:
@@ -48,11 +51,13 @@ func _ready():
 # ========================
 # ▼ スキル時背景 ▼
 # ========================
-func start_phase(phase_data):
-	print("フェーズ開始: ", phase_data)
-	if phase_data.type == "skill":
+func start_phase_effects(phase: Dictionary) -> void:
+	print("フェーズ開始: ", phase)
+	if phase.type == "skill":
 		print("スキルフェーズ判定 OK")
-		var bg_path = skill_backgrounds.get(phase_data.name, "res://image/bgkarakasa .png")
+		SoundManager.play_se_by_path("res://se/Onoma-Flash06-mp3/Onoma-Flash06-1(Low-Mid).mp3")
+		await get_tree().get_current_scene().show_spell_cutin(phase["name"])
+		var bg_path = skill_backgrounds.get(phase.name, "res://image/bgkarakasa .png")
 		print("スキル背景を読み込み中: ", bg_path)
 		await fade_out()
 		print("フェードアウト終了")
@@ -66,11 +71,11 @@ func start_phase(phase_data):
 		print("スキル背景のフェードイン完了")
 		await fade_in()
 		print("フェードイン終了")
-	if phase_data.has("name"):
-		ui.show_skill_name(phase_data.name)
-	else:
-		ui.hide_skill_name()
-		print("通常フェーズ: 背景は変更しない")
+	#if phase.has("name"):
+		#ui.show_skill_name(phase.name)
+	#else:
+		#ui.hide_skill_name()
+		#print("通常フェーズ: 背景は変更しない")
 
 
 		
@@ -106,7 +111,7 @@ func fade_in(duration := 0.5):
 # ========================
 # ▼ スペルカットイン演出 ▼
 # ========================
-func show_spell_cutin(name: String) -> void:
+func show_spell_cutin(name: String):
 	var ui = get_node("UI")  # boss_zikken ルートから UI を取得
 	var cutin = ui.get_node("cutin")
 	var wazamei = ui.get_node("cutinlabel")
