@@ -52,6 +52,8 @@ func update_life_ui(lives: int):
 
 # ----------弾を発射する関数-----------
 func _process(delta):
+	if Global.is_talking:
+		return  # 会話中は何もしない！
 	# Zキー長押しで連射
 	if Input.is_action_pressed("shot"): #justがないと「押してる間」という意味になる
 		shoot_timer -= delta

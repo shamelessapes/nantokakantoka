@@ -23,6 +23,8 @@ var is_pattern_running = false
 var can_shoot = true
 var pattern_task = null
 var time_remaining = 0
+var dialogue_connected := false  # 一度だけ接続するためのフラグ
+var started_phase_index := -1
 
 
 var move_steps = [
@@ -41,6 +43,10 @@ var phases = [
 ]
 
 func start_phase(phase_index: int):
+	if phase_index == started_phase_index:
+		print("⚠️ 同じフェーズが二重に呼ばれたのでキャンセル")
+		return
+	started_phase_index = phase_index
 	var phase : Dictionary = phases[phase_index]
 
 	
@@ -102,20 +108,45 @@ func _on_Timer_timeout():
 #ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 func _ready():
+	visible = false
 	$Animation.play("default")
+	$UI/timelimit.visible = false
+	$UI/enemyHP.visible = false
 	be_invincible(6.0)
 	move_timer.connect("timeout", Callable(self, "_on_move_timer_timeout"))
 	rain_timer.connect("timeout", Callable(self, "_on_rain_timer_timeout"))
 	phase_timer.connect("timeout", Callable(self, "_on_Timer_timeout"))
 
 	
-#ーーーーーーーーーボス登場演出ーーーーーーーーーー
+func start_entrance_animation():
 	var tween = create_tween()
 	tween.tween_property(self, "position", Vector2(position.x, 200), 1.0) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)  # 上からスーッと降りる演出
+	tween.finished.connect(_on_drop_finished)
 	await tween.finished  # Tweenが終わるのを待つ
 	await get_tree().create_timer(3.0).timeout  # 3秒待つ
-	start_phase(current_phase)  # フェーズ開始！
+	
+func _on_drop_finished():
+	# 3秒の待機（コルーチン使えないのでTimerで）
+	var wait_timer = Timer.new()
+	wait_timer.wait_time = 0.1
+	wait_timer.one_shot = true
+	add_child(wait_timer)
+	wait_timer.start()
+	wait_timer.timeout.connect(_on_wait_finished)
+
+func _on_wait_finished():
+	# dialoguemanagerのシグナルを受け取って待つ
+	var dm = get_node("../dialoguemanager")
+	dm.dialogue_finished.connect(_on_dialogue_finished)
+	dialogue_connected = true
+	
+func _on_dialogue_finished():
+	print("関数が呼ばれた")
+	$UI/timelimit.visible = true
+	$UI/enemyHP.visible = true
+	start_phase(current_phase)
+	be_invincible(3.0)
 	
 func update_hp_bar():
 	$UI/enemyHP.max_value = phases[current_phase]["hp"]  # フェーズごとの最大HP

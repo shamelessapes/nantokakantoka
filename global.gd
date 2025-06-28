@@ -8,6 +8,7 @@ var shake_timer: Timer  # タイマーを保存する変数
 var shaking: bool = false  # 揺れ中かどうかを判定するフラグ
 var original_position: Vector2  # 元の位置を保存する変数
 var score = 0  # スコアを保持する変数
+var is_talking := false
 
 signal score_changed(new_score)
 
