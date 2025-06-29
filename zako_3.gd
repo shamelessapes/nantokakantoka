@@ -86,18 +86,9 @@ func take_damage(damage: int) -> void:
 	hp -= damage
 	if hp <= 0:
 		is_dead = true  # 死亡フラグを立てる
-		play_death_sound()
+		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
 		explode()
 
-func play_death_sound() -> void:
-	var new_sound = AudioStreamPlayer2D.new()
-	new_sound.stream = zakodead_sound
-	new_sound.volume_db = 0
-	new_sound.position = position  # global_position は使わない (Godot 4.2以降では position でOK)
-	get_tree().current_scene.add_child(new_sound)
-	new_sound.play()
-
-	new_sound.finished.connect(func(): new_sound.queue_free())
 
 func explode() -> void:
 	var explosion = explosion_scene.instantiate()

@@ -24,6 +24,7 @@ func on_yes_pressed():
 	if players.size() > 0:
 		var player = players[0]
 		print("コンティニューするよ！")
+		SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
 		Global.reset_score()
 		get_tree().paused = false
 		await get_tree().create_timer(0.1).timeout  # 少し待つ
@@ -48,5 +49,6 @@ func _disable_invincible_later(player):
 func on_no_pressed():
 	# タイトル画面に戻る
 	print("タイトルに戻るよ！")
+	SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
 	get_tree().paused = false
 	queue_free()

@@ -25,8 +25,11 @@ func toggle_pause():
 		$PauseMenu.visible = false  # PauseMenuノードを非表示
 
 	else:
-		get_tree().paused = true
 		$PauseMenu.visible = true   # PauseMenuノードを表示
+		await get_tree().process_frame
+		get_tree().paused = true
+		SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
+		
 
 
 
@@ -55,7 +58,7 @@ func start_phase_effects(phase: Dictionary) -> void:
 	print("フェーズ開始: ", phase)
 	if phase.type == "skill":
 		print("スキルフェーズ判定 OK")
-		SoundManager.play_se_by_path("res://se/Onoma-Flash06-mp3/Onoma-Flash06-1(Low-Mid).mp3")
+		SoundManager.play_se_by_path("res://se/Onoma-Flash06-mp3/Onoma-Flash06-1(Low-Mid).mp3", +10)
 		await get_tree().get_current_scene().show_spell_cutin(phase["name"])
 		var bg_path = skill_backgrounds.get(phase.name, "res://image/bgkarakasa .png")
 		print("スキル背景を読み込み中: ", bg_path)
