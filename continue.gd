@@ -51,4 +51,5 @@ func on_no_pressed():
 	print("タイトルに戻るよ！")
 	SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
 	get_tree().paused = false
+	await Global.change_scene_with_fade("res://tscn/title_demo.tscn",Color.BLACK)
 	queue_free()

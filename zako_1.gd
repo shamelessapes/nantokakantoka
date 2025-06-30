@@ -48,6 +48,7 @@ func take_damage(damage: int) -> void:
 		is_dead = true  # 死亡フラグを立てる
 		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
 		#play_death_sound()
+		Global.add_score(10)
 		explode()
 
 #func play_death_sound() -> void:

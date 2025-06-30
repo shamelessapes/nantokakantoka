@@ -144,19 +144,35 @@ func _resize_color_rect():
 	color_rect.size = get_viewport().get_visible_rect().size
 
 # --- フェードアウトしてシーン遷移
-func change_scene_with_fade(path: String) -> void:
-	color_rect.modulate.a = 0.0
+func change_scene_with_fade(path: String, color: Color = Color.BLACK, duration: float = 1.5) -> void:
+	color.a = 0.0  # 最初は透明から始める
+	color_rect.modulate = color
 	color_rect.show()
 	var tween = create_tween()
-	tween.tween_property(color_rect, "modulate:a", 1.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(color_rect, "modulate:a", 1.0, duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	await tween.finished
 	get_tree().change_scene_to_file(path)
 
+
 # --- フェードイン（画面表示開始時用）
-func fade_in() -> void:
-	color_rect.modulate.a = 1.0
+func fade_in(color: Color = Color.WHITE, _duration: float = 1.0) -> void:
+	color.a = 1.0
+	color_rect.modulate = color
 	color_rect.show()
 	var tween = create_tween()
-	tween.tween_property(color_rect, "modulate:a", 0.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(color_rect, "modulate:a", 0.0, _duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	color_rect.hide()
+
+# --- フェードアウト（画面を暗くする）
+func fade_out(color: Color = Color.BLACK, _duration: float = 1.0) -> void:
+	color.a = 0.0  # 最初は透明な状態で開始
+	color_rect.modulate = color
+	color_rect.show()
+	var tween = create_tween()
+	tween.tween_property(color_rect, "modulate:a", 1.0, _duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	await tween.finished
+	# フェードアウト後はあえて表示を残す（シーン遷移などの直前用）

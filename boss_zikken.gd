@@ -50,6 +50,7 @@ func _physics_process(delta: float) -> void:
 func _ready():
 	Global.fade_in()
 	Global.register_camera($Camera2D)  # 自分のカメラノードを登録
+	$AudioStreamPlayer2D.play()
 
 # ========================
 # ▼ スキル時背景 ▼

@@ -20,3 +20,4 @@ func on_exit_pressed():
 func on_resume_pressed():
 	get_tree().paused = false
 	hide()
+	await Global.change_scene_with_fade("res://tscn/title_demo.tscn" , Color.BLACK)

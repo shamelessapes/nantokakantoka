@@ -40,6 +40,10 @@ const PHASE4_FINAL_Y := 300.0
 const PHASE4_MOVE_DURATION := 1.0
 const PHASE4_DESCEND_DELAY := 0.2  # 右から順に降ろす遅延
 
+func _ready() -> void:
+	await Global.fade_in(Color.BLACK)
+
+
 func _process(delta: float) -> void:
 	elapsed_time += delta
 
@@ -160,4 +164,4 @@ func _spawn_phase4_row():
 		
 		
 func _go_to_boss_scene():
-	await Global.change_scene_with_fade("res://tscn/boss_zikken.tscn")
+	await Global.change_scene_with_fade("res://tscn/boss_zikken.tscn" , Color.WHITE)
