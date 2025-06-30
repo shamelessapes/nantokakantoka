@@ -24,3 +24,9 @@ func play_se_by_path(path: String, volume_db: float = 0) -> void:
 	add_child(timer)
 	timer.start()
 	timer.timeout.connect(Callable(player, "queue_free"))
+	
+func stop_all_sounds():
+	for child in get_children():
+		if child is AudioStreamPlayer2D:
+			child.stop()
+			child.queue_free()

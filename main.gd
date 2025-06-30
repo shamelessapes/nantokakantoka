@@ -13,6 +13,14 @@ func _physics_process(delta: float) -> void:
 	
 func _ready():
 	$AudioStreamPlayer2D.play()
+	
+	#ーーーーーーーーーーstage1のみーーーーーーーーーー
+	Global.reset_score()
+	var player := $player
+	var current_lives := 3
+	player.current_lives = 3
+	player.update_life_ui(player.current_lives) 
+	
 
 func _unhandled_input(event):
 	if event.is_action_pressed("pause"):
