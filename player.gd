@@ -37,6 +37,8 @@ signal player_dead
 
 func _ready() -> void:
 	Global.load_current_lives(self)
+	if not life_changed.is_connected($HUD.update_life_ui):
+		life_changed.connect($HUD.update_life_ui)
 	update_life_ui(current_lives)
 	position = start_position  # 初期化時にセット
 	$HUD.update_life_ui(current_lives) 
@@ -46,7 +48,6 @@ func _ready() -> void:
 
 # ライフ更新の関数
 func update_life_ui(lives: int):
-	life_changed.connect($HUD.update_life_ui)
 	blink_sprite = $AnimatedSprite2D  # 子ノードのスプライトを取得
 
 

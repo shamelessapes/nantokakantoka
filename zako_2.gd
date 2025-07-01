@@ -9,6 +9,7 @@ const BULLET_SCN := preload("res://tscn/tekidan_3.tscn")
 
 var hp := 35  # 敵の最大HP
 var is_dead := false  # 死亡フラグ
+var is_blinking = false
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
 
@@ -64,20 +65,35 @@ func _on_area_entered(area: Area2D) -> void:
 		area.take_damage()
 
 func _on_shot_area_entered(area: Area2D) -> void:
+	print("ショット当たった")
 	if area.is_in_group("player_shot"):
 		var damage = area.damage
 		take_damage(damage)
+		
+func _on_shot_area_exited(area: Area2D) -> void:
+	if area.is_in_group("player_shot"):
+		is_blinking = false
+		set_meta("is_blinking", false)
 
 func take_damage(damage: int) -> void:
 	if is_dead:
 		return  # すでに死亡処理済みなら無視
+	
+	if not is_blinking:
+		print("点滅してないこと確認")
+		is_blinking = true
+		set_meta("is_blinking", true)  # BlinkManager 用フラグもセット
+		Global._do_blink_white($AnimatedSprite2D, self, 0.1)  # ← 白点滅開始
+		print("点滅呼んだ")
 
 	hp -= damage
 	if hp <= 0:
 		is_dead = true  # 死亡フラグを立てる
+		set_meta("is_blinking", false) 
 		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
 		Global.add_score(20)
 		explode()
+
 
 
 func explode() -> void:

@@ -2,6 +2,12 @@ extends Node2D
 
 var is_hitstop := false
 
+func _ready():
+	Global.reset_score()
+	var player = $player
+	player.current_lives = 3
+	player.update_life_ui(3)
+
 func _physics_process(delta: float) -> void:
 	if Global.is_hitstop:
 		return  # ヒットストップ中はスクロール停止！

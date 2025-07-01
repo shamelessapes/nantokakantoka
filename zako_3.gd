@@ -15,6 +15,7 @@ var is_dead := false  # 死亡フラグ
 
 var _fire_timer := 0.0 # 発射用タイマー
 var _has_fired_once := false # 最初の1発を撃ったかどうか
+var is_blinking = false
 
 
 func _ready():
@@ -82,10 +83,17 @@ func _on_shot_area_entered(area: Area2D) -> void:
 func take_damage(damage: int) -> void:
 	if is_dead:
 		return  # すでに死亡処理済みなら無視
+	if not is_blinking:
+		is_blinking = false
+		set_meta("is_blinking", false)
+		print("点滅してないこと確認")
+		Global._do_blink_white($AnimatedSprite2D, self, 0.1)  # ← 白点滅開始
+		print("点滅呼んだ")
 
 	hp -= damage
 	if hp <= 0:
 		is_dead = true  # 死亡フラグを立てる
+		set_meta("is_blinking", false) 
 		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
 		Global.add_score(10)
 		explode()

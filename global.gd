@@ -111,6 +111,58 @@ func _on_shake_timeout() -> void:
 	if camera_node:
 		camera_node.position = original_position
 
+# スプライトを点滅させる関数 呼び方（Global.blink_sprite($Sprite, 5, 0.1)）
+#func blink_sprite(sprite: CanvasItem, times: int = 3, interval: float = 0.1) -> void:
+#	if not is_instance_valid(sprite):
+#		return
+#	# 非同期で点滅開始
+#	await _blink_loop(sprite, times, interval)
+# 内部的に再帰で点滅を繰り返す関数
+#func _blink_loop(sprite: CanvasItem, times: int, interval: float, blink_count: int = 0, visible := true) -> void:
+#	if not is_instance_valid(sprite):
+#		return
+#	sprite.visible = visible
+#	if blink_count < times * 2:
+#		await get_tree().create_timer(interval).timeout
+#		await _blink_loop(sprite, times, interval, blink_count + 1, not visible)
+#	else:
+#		sprite.visible = true  # 最後にちゃんと見えるように戻す
+
+# 白く点滅させる処理
+func blink_white(sprite: CanvasItem, owner: Node, interval: float) -> void:
+	print("blink_white呼ばれた")
+	_run_blink_white(sprite, owner, interval)
+# 非同期で点滅ループを起動
+func _run_blink_white(sprite: CanvasItem, owner: Node, interval: float) -> void:
+	await _do_blink_white(sprite, owner, interval)
+# 点滅本体
+func _do_blink_white(sprite: CanvasItem, owner: Node, interval: float) -> void:
+	var is_white = false
+	while true:
+		# 安全に owner が生きてるか確認してから進める
+		if not is_instance_valid(owner):
+			break
+		if not owner.has_meta("is_blinking"):
+			break
+		if not owner.get_meta("is_blinking"):
+			break
+		if not is_instance_valid(sprite):
+			break
+		# 点滅切り替え
+		sprite.modulate = Color(1, 1, 1) if is_white else Color(2, 2, 2)
+		is_white = not is_white
+		# 待機（タイマー中に owner が消えても次ループで止まる）
+		await get_tree().create_timer(interval).timeout
+	# 最後に色を元に戻す
+	if is_instance_valid(sprite):
+		sprite.modulate = Color(1, 1, 1)
+
+
+
+
+
+
+
 
 # --- フェード用変数
 var fade_layer := CanvasLayer.new()

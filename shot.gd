@@ -34,8 +34,8 @@ func _physics_process(delta):
 func _on_area_entered(area):
 	if has_hit:
 		return  # 既に当たったら無視
-
 	if area.is_in_group("enemy"):
+		
 		_process_hit(area)
 
 func _process_hit(enemy):
