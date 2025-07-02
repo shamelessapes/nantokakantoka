@@ -87,7 +87,7 @@ func take_damage(damage: int) -> void:
 		is_blinking = false
 		set_meta("is_blinking", false)
 		print("点滅してないこと確認")
-		Global._do_blink_white($AnimatedSprite2D, self, 0.1)  # ← 白点滅開始
+		Global._do_blink_white($AnimatedSprite2D, self, 0.2,1.0)  # ← 白点滅開始
 		print("点滅呼んだ")
 
 	hp -= damage
@@ -95,7 +95,7 @@ func take_damage(damage: int) -> void:
 		is_dead = true  # 死亡フラグを立てる
 		set_meta("is_blinking", false) 
 		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
-		Global.add_score(10)
+		Global.add_score(0)
 		explode()
 
 

@@ -10,7 +10,8 @@ extends CharacterBody2D
 @onready var rain_timer = $rain_timer
 @onready var phase_timer = $Timer
 @onready var time_bar = $UI/timelimit
-@onready var ui: SkillNameUI = get_node("../CanvasLayer")
+@onready var ui: Label = get_parent().get_node("CanvasLayer2/CanvasLayer/SkillNameLabel")
+
 
 
 var current_phase = 0
@@ -104,6 +105,7 @@ func _on_Timer_timeout():
 #ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 func _ready():
+	print(ui)
 	visible = false
 	$Animation.play("default")
 	$UI/timelimit.visible = false
@@ -403,7 +405,7 @@ func shoot_bullets(count: int) -> void:
 # ========================
 func die():
 	print("ボス撃破")
-	ui.hide_skill_name()
+	#ui.hide_skill_name()
 	Global.shake_screen(10.0, 0.5)  # 強さ8、0.3秒間
 	Global.add_score(10000)
 	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり

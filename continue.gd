@@ -50,6 +50,7 @@ func on_no_pressed():
 	# タイトル画面に戻る
 	print("タイトルに戻るよ！")
 	SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
+	Global.saved_lives = -1
 	get_tree().paused = false
-	await Global.change_scene_with_fade("res://tscn/title_demo.tscn",Color.BLACK)
+	await Global.change_scene_with_fade("res://tscn/mikotsuka_title.tscn",Color.BLACK)
 	queue_free()

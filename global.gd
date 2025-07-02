@@ -9,6 +9,7 @@ var shaking: bool = false  # 揺れ中かどうかを判定するフラグ
 var original_position: Vector2  # 元の位置を保存する変数
 var score = 0  # スコアを保持する変数
 var is_talking := false
+#var player = get_tree().get_nodes_in_group("player")[0]
 
 signal score_changed(new_score)
 
@@ -46,6 +47,14 @@ func load_current_lives(player):
 	else:
 		print("📤 HP復元なし（初期値使用）")
 
+var current_lives : int = 3
+
+func reset_lives(player):
+	current_lives = 3
+	player.current_lives = current_lives
+	player.update_life_ui(current_lives)
+	if player.has_node("HUD"):
+		player.get_node("HUD").update_life_ui(current_lives)
 
 func set_pause_mode_for_scene(root_node: Node):
 	# ゲーム中のノードを一括でPAUSABLEにする例
@@ -111,51 +120,33 @@ func _on_shake_timeout() -> void:
 	if camera_node:
 		camera_node.position = original_position
 
-# スプライトを点滅させる関数 呼び方（Global.blink_sprite($Sprite, 5, 0.1)）
-#func blink_sprite(sprite: CanvasItem, times: int = 3, interval: float = 0.1) -> void:
-#	if not is_instance_valid(sprite):
-#		return
-#	# 非同期で点滅開始
-#	await _blink_loop(sprite, times, interval)
-# 内部的に再帰で点滅を繰り返す関数
-#func _blink_loop(sprite: CanvasItem, times: int, interval: float, blink_count: int = 0, visible := true) -> void:
-#	if not is_instance_valid(sprite):
-#		return
-#	sprite.visible = visible
-#	if blink_count < times * 2:
-#		await get_tree().create_timer(interval).timeout
-#		await _blink_loop(sprite, times, interval, blink_count + 1, not visible)
-#	else:
-#		sprite.visible = true  # 最後にちゃんと見えるように戻す
-
 # 白く点滅させる処理
-func blink_white(sprite: CanvasItem, owner: Node, interval: float) -> void:
-	print("blink_white呼ばれた")
-	_run_blink_white(sprite, owner, interval)
+func blink_white(sprite: CanvasItem, owner: Node, interval: float, duration: float = 1.0) -> void:
+	_run_blink_white(sprite, owner, interval, duration)
 # 非同期で点滅ループを起動
-func _run_blink_white(sprite: CanvasItem, owner: Node, interval: float) -> void:
-	await _do_blink_white(sprite, owner, interval)
+func _run_blink_white(sprite: CanvasItem, owner: Node, interval: float, duration: float) -> void:
+	await _do_blink_white(sprite, owner, interval, duration)
 # 点滅本体
-func _do_blink_white(sprite: CanvasItem, owner: Node, interval: float) -> void:
+func _do_blink_white(sprite: CanvasItem, owner: Node, interval: float, duration: float) -> void:
 	var is_white = false
-	while true:
-		# 安全に owner が生きてるか確認してから進める
+	var elapsed = 0.0
+	while elapsed < duration:
 		if not is_instance_valid(owner):
-			break
-		if not owner.has_meta("is_blinking"):
-			break
-		if not owner.get_meta("is_blinking"):
 			break
 		if not is_instance_valid(sprite):
 			break
-		# 点滅切り替え
 		sprite.modulate = Color(1, 1, 1) if is_white else Color(2, 2, 2)
 		is_white = not is_white
-		# 待機（タイマー中に owner が消えても次ループで止まる）
 		await get_tree().create_timer(interval).timeout
-	# 最後に色を元に戻す
+		elapsed += interval
+	# 点滅終了後、色を戻してフラグも切る
 	if is_instance_valid(sprite):
 		sprite.modulate = Color(1, 1, 1)
+	if is_instance_valid(owner):
+		owner.set_meta("is_blinking", false)
+		if "is_blinking" in owner:
+			owner.is_blinking = false  # 変数があるなら明示的にも切る
+
 
 
 
