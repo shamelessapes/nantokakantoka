@@ -8,6 +8,9 @@ func _ready():
 	# ボタンの接続
 	$do_continue.pressed.connect(on_yes_pressed)
 	$giveup.pressed.connect(on_no_pressed)
+	$do_continue.focus_mode = Control.FOCUS_ALL
+	$giveup.focus_mode = Control.FOCUS_ALL
+
 	
 	var players = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:

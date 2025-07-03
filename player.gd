@@ -242,6 +242,8 @@ func die():
 	continue_scene.process_mode = Node.PROCESS_MODE_ALWAYS  # 念のため
 	get_tree().get_root().add_child(continue_scene)
 	continue_scene.show()  # ← これがないと表示されない！
+	continue_scene.get_node("do_continue").grab_focus()
+
 
 	print("🧪 continue_scene を add_child したよ")
 	print("pause mode:", continue_scene.process_mode)

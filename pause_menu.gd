@@ -3,7 +3,12 @@ extends Control
 func _ready():
 	# 最初は非表示
 	hide()
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	process_mode = Node.PROCESS_MODE_ALWAYS  # ポーズ中でも動かす
+	
+	$Restart.focus_mode = Control.FOCUS_ALL
+	$ReturntoTitle.focus_mode = Control.FOCUS_ALL
+
 
 	$Restart.pressed.connect(on_exit_pressed)
 	$ReturntoTitle.pressed.connect(on_resume_pressed)

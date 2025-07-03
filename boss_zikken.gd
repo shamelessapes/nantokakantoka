@@ -25,8 +25,9 @@ func toggle_pause():
 		$PauseMenu.visible = false  # PauseMenuノードを非表示
 
 	else:
-		$PauseMenu.visible = true   # PauseMenuノードを表示
+		$UI/PauseMenu.visible = true   # PauseMenuノードを表示
 		await get_tree().process_frame
+		$UI/PauseMenu/Restart.grab_focus()
 		get_tree().paused = true
 		SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
 		
@@ -48,6 +49,7 @@ func _physics_process(delta: float) -> void:
 	$bg/Parallax2D4.scroll_offset.y += 2
 		
 func _ready():
+	DisplayServer.window_set_size(Vector2i(1920, 1080))
 	Global.fade_in()
 	Global.register_camera($Camera2D)  # 自分のカメラノードを登録
 

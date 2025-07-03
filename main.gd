@@ -31,4 +31,5 @@ func toggle_pause():
 	else:
 		get_tree().paused = true
 		$PauseMenu.visible = true   # PauseMenuノードを表示
+		$PauseMenu/Restart.grab_focus()
 		SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")

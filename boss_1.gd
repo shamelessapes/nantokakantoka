@@ -192,6 +192,11 @@ func take_damage(amount: int):
 	#print("ダメージ受けた！現在HP:", current_hp)
 
 	last_damage_time = damage_cooldown
+	var is_blinking = false
+	if not is_blinking:
+		is_blinking = true
+		set_meta("is_blinking", true)  # BlinkManager 用フラグもセット
+		Global._do_blink_white($Animation, self, 0.3,0.7)  # ← 白点滅開始
 
 	if current_hp == 0:
 		phase_timer.stop()
