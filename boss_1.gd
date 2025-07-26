@@ -139,13 +139,18 @@ func _on_wait_finished():
 		dm.dialogue_finished.connect(_on_dialogue_finished)
 		dialogue_connected = true
 	
+var dialogue_finished_called := false
+
 func _on_dialogue_finished():
-	print("関数が呼ばれた")
+	if dialogue_finished_called:
+		#print("⚠️ すでに呼ばれてるのでスキップ")
+		return
+	dialogue_finished_called = true
+	print("関数が呼ばれた（初回）")
 	$UI/timelimit.visible = true
 	$UI/enemyHP.visible = true
 	start_phase(current_phase)
 	be_invincible(2.0)
-	#一時停止解除後とフェーズ開始時に無敵になる不具合アリ
 	
 func update_hp_bar():
 	$UI/enemyHP.max_value = phases[current_phase]["hp"]  # フェーズごとの最大HP
@@ -182,21 +187,22 @@ func take_damage(amount: int):
 		#print("無敵中なのでダメージ無効")
 		return
 	if last_damage_time > 0:
-		#print("ダメージクールタイム中なので無視")
 		return
 	if current_hp <= 0:
 		return  # すでに死んでる or フェーズ移行中なら何もしない
 
 	current_hp = max(current_hp - amount, 0)
 	update_hp_bar()
-	#print("ダメージ受けた！現在HP:", current_hp)
 
 	last_damage_time = damage_cooldown
+	
 	var is_blinking = false
-	if not is_blinking:
-		is_blinking = true
-		set_meta("is_blinking", true)  # BlinkManager 用フラグもセット
-		Global._do_blink_white($Animation, self, 0.3,0.7)  # ← 白点滅開始
+	if get_meta("is_blinking", false):
+		return  # すでに点滅中なら無視
+
+	set_meta("is_blinking", true)
+	await Global._do_blink_white($Animation, self, 0.3, 0.7)
+
 
 	if current_hp == 0:
 		phase_timer.stop()

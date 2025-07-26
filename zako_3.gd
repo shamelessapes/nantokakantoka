@@ -86,9 +86,7 @@ func take_damage(damage: int) -> void:
 	if not is_blinking:
 		is_blinking = false
 		set_meta("is_blinking", false)
-		print("点滅してないこと確認")
 		Global._do_blink_white($AnimatedSprite2D, self, 0.2,1.0)  # ← 白点滅開始
-		print("点滅呼んだ")
 
 	hp -= damage
 	if hp <= 0:

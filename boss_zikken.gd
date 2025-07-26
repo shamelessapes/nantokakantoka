@@ -49,7 +49,6 @@ func _physics_process(delta: float) -> void:
 	$bg/Parallax2D4.scroll_offset.y += 2
 		
 func _ready():
-	DisplayServer.window_set_size(Vector2i(1920, 1080))
 	Global.fade_in()
 	Global.register_camera($Camera2D)  # 自分のカメラノードを登録
 

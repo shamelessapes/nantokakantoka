@@ -20,7 +20,6 @@ signal score_changed(new_score)
 func add_score(points: int) -> void:
 	score += points
 	emit_signal("score_changed", score)  # スコア変化を通知
-	print("スコア更新:", score)
 
 func reset_score() -> void:
 	score = 0
@@ -122,7 +121,14 @@ func _on_shake_timeout() -> void:
 
 # 白く点滅させる処理
 func blink_white(sprite: CanvasItem, owner: Node, interval: float, duration: float = 1.0) -> void:
+	if owner.get_meta("is_blinking", false):
+		return  # すでに点滅中なら何もしない
+	# ここですぐにフラグ立てることで、多重起動を防ぐ
+	owner.set_meta("is_blinking", true)
+	if "is_blinking" in owner:
+		owner.is_blinking = true
 	_run_blink_white(sprite, owner, interval, duration)
+
 # 非同期で点滅ループを起動
 func _run_blink_white(sprite: CanvasItem, owner: Node, interval: float, duration: float) -> void:
 	await _do_blink_white(sprite, owner, interval, duration)
@@ -139,13 +145,12 @@ func _do_blink_white(sprite: CanvasItem, owner: Node, interval: float, duration:
 		is_white = not is_white
 		await get_tree().create_timer(interval).timeout
 		elapsed += interval
-	# 点滅終了後、色を戻してフラグも切る
+	# 点滅終了後、色を戻してフラグも解除
 	if is_instance_valid(sprite):
 		sprite.modulate = Color(1, 1, 1)
 	if is_instance_valid(owner):
 		owner.set_meta("is_blinking", false)
-		if "is_blinking" in owner:
-			owner.is_blinking = false  # 変数があるなら明示的にも切る
+
 
 
 
