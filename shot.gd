@@ -31,16 +31,19 @@ func _physics_process(delta):
 	if position.y < -100:
 		queue_free()
 
-func _on_area_entered(area):
-	if has_hit:
-		return  # 既に当たったら無視
-	if area.is_in_group("enemy"):
+#func _on_area_entered(area):
+	#if has_hit:
+		#return  # 既に当たったら無視
+	#if area.is_in_group("enemy"):
 		
-		_process_hit(area)
+		#_process_hit(area)
 
 func _process_hit(enemy):
 	if not enemy.has_method("take_damage"):
 		return  # ダメージ処理できない場合は無視
+	if enemy.is_invincible:
+		print("無敵中なのでダメージ無効")
+		return
 
 	var players = get_tree().get_nodes_in_group("player")
 	if players.is_empty():
