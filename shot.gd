@@ -7,7 +7,7 @@ extends Area2D
 var has_hit := false  # 既にヒットしたかどうかのフラグ
 
 # ダメージ倍率関連の定数（近いほど強く、遠いと弱く）
-const MIN_MULTIPLIER = 0.9
+const MIN_MULTIPLIER = 1.0
 const MAX_MULTIPLIER = 1.5
 const CLOSE_DISTANCE = 80.0
 const FAR_DISTANCE = 900.0
@@ -41,9 +41,10 @@ func _physics_process(delta):
 func _process_hit(enemy):
 	if not enemy.has_method("take_damage"):
 		return  # ダメージ処理できない場合は無視
-	if enemy.is_invincible:
+	if "is_invincible" in enemy and enemy.is_invincible:
 		print("無敵中なのでダメージ無効")
 		return
+
 
 	var players = get_tree().get_nodes_in_group("player")
 	if players.is_empty():

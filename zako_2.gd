@@ -7,9 +7,10 @@ const BULLET_SCN := preload("res://tscn/tekidan_3.tscn")
 @export var stop_y: float = 100                        # 降下を止める Y 座標（スポナー側で上書き） 
 @export var descend_duration: float = 0.8                # Tweenで降りる時間
 
-var hp := 35  # 敵の最大HP
+var hp := 5  # 敵の最大HP
 var is_dead := false  # 死亡フラグ
 var is_blinking = false
+var is_invincible = false
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
 
@@ -58,6 +59,17 @@ func _enter_exit_state() -> void:
 
 
 
+# 無敵を一定時間だけ付与するメソッド
+func be_invincible(duration: float) -> void:
+	is_invincible = true
+	print("無敵ON: " + str(duration) + "秒")
+	_end_invincibility()
+	
+func _end_invincibility() -> void:
+	if not is_invincible:
+		return # ★ すでに無敵解除済みなら二度目以降は無視
+	is_invincible = false
+	print("無敵OFF")
 
 		
 func _on_area_entered(area: Area2D) -> void:

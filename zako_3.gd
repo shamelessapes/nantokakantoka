@@ -8,7 +8,7 @@ const BULLET_SCN := preload("res://tscn/tekidan_4.tscn")
 @export var min_x: float = 280.0 # 折り返し左端X
 @export var max_x: float = 710.0 # 折り返し右端X
 @export var player_path: NodePath # プレイヤーノードパス（インスペクタで設定）
-var hp := 35  # 敵の最大HP
+var hp := 6  # 敵の最大HP
 var is_dead := false  # 死亡フラグ
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
@@ -16,6 +16,7 @@ var is_dead := false  # 死亡フラグ
 var _fire_timer := 0.0 # 発射用タイマー
 var _has_fired_once := false # 最初の1発を撃ったかどうか
 var is_blinking = false
+var is_invincible = false
 
 
 func _ready():
@@ -69,7 +70,17 @@ func _fire_three_bullets() -> void:
 
 
 
-
+# 無敵を一定時間だけ付与するメソッド
+func be_invincible(duration: float) -> void:
+	is_invincible = true
+	print("無敵ON: " + str(duration) + "秒")
+	_end_invincibility()
+	
+func _end_invincibility() -> void:
+	if not is_invincible:
+		return # ★ すでに無敵解除済みなら二度目以降は無視
+	is_invincible = false
+	print("無敵OFF")
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):

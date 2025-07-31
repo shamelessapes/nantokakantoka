@@ -10,10 +10,9 @@ var is_blinking = false
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
 
-var is_invincible: bool = false
+var is_invincible = false
 
-func _on_invincibility_end():
-	is_invincible = false
+
 
 
 func _ready():
@@ -31,6 +30,18 @@ func _process(delta):
 func _resume_move():
 	can_move = true
 		
+# 無敵を一定時間だけ付与するメソッド
+func be_invincible(duration: float) -> void:
+	is_invincible = true
+	print("無敵ON: " + str(duration) + "秒")
+	_end_invincibility()
+	
+func _end_invincibility() -> void:
+	if not is_invincible:
+		return # ★ すでに無敵解除済みなら二度目以降は無視
+	is_invincible = false
+	print("無敵OFF")
+
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):
 		area.take_damage()
