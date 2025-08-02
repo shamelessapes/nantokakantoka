@@ -33,6 +33,13 @@ func add_time_bonus_score(time_remaining: float):
 
 var saved_lives: int = -1  # -1 なら未保存（初期化判定に使う）
 
+#弾けし
+func clear_bullets() -> void:
+	for b in get_tree().get_nodes_in_group("bullet"):
+		if is_instance_valid(b):
+			b.queue_free()
+
+
 # HPを保存する
 func save_current_lives(lives: int):
 	saved_lives = lives
