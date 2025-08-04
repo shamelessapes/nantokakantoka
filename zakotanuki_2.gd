@@ -34,9 +34,9 @@ func _process(delta: float) -> void:
 	if position.y > 1100:
 		queue_free()
 	
-	if verocity.x < 0:  # 左に動いている場合
+	if direction.x < 0:  # 左に動いている場合
 		$AnimatedSprite2D.play("left")
-	elif verocity.x > 0:  # 右に動いている場合
+	elif direction.x > 0:  # 右に動いている場合
 		$AnimatedSprite2D.play("right")
 	else:  # どちらにも動いていない場合
 		$AnimatedSprite2D.play("right")
@@ -54,7 +54,23 @@ func _on_shot_area_entered(area: Area2D) -> void:
 func be_invincible(duration: float) -> void:
 	is_invincible = true
 	print("無敵ON: " + str(duration) + "秒")
-	_end_invincibility()
+
+	var timer = Timer.new()
+	timer.one_shot = true
+	timer.wait_time = duration
+	call_deferred("_add_and_start_timer", timer)  # ← ツリーに入るまで待つ
+
+func _add_and_start_timer(timer: Timer) -> void:
+	add_child(timer)
+	timer.start()
+
+	# タイマー終了時の処理
+	timer.timeout.connect(func():
+		if not is_instance_valid(self):
+			return
+		_end_invincibility()
+		timer.queue_free()
+	)
 	
 func _end_invincibility() -> void:
 	if not is_invincible:

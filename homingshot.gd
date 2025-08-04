@@ -25,6 +25,9 @@ func check_collision():
 	if homing_collision:
 		# Area2D（弾や当たり判定）との衝突判定
 		for area in homing_collision.get_overlapping_areas():
+			if area.is_in_group("enemy")  and area.has_method("is_invincible"):
+				print("無敵中なのでダメージ無効")
+				return
 			if area.is_in_group("enemy") and area.has_method("take_damage"):
 				area.take_damage(damage)
 				queue_free()
