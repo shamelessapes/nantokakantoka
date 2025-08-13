@@ -415,7 +415,6 @@ func shoot_bullets(count: int) -> void:
 # ▼ 死亡 ▼
 # ========================
 func die():
-	print("ボス撃破")
 	#ui.hide_skill_name()
 	Global.shake_screen(10.0, 0.5)  # 強さ8、0.3秒間
 	Global.add_score(10000)
