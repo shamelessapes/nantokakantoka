@@ -42,7 +42,6 @@ func _process_hit(enemy):
 	if not enemy.has_method("take_damage"):
 		return  # ダメージ処理できない場合は無視
 	if "is_invincible" in enemy and enemy.is_invincible:
-		print("無敵中なのでダメージ無効")
 		return
 
 
