@@ -155,3 +155,8 @@ func hide_dialogue():
 	self.visible = false
 	Global.is_talking = false
 	emit_signal("dialogue_finished")  # 会話終わったよ！
+	
+		# 3秒待ってから画面遷移（フェード関数呼び出し）
+	if is_after_battle:
+		await Global.change_scene_with_fade("res://tscn/stage2.tscn",Color.BLACK)
+	
