@@ -2,6 +2,14 @@ extends Node2D
 
 var is_hitstop := false
 
+func _ready():
+	var current_lives := 3
+	Global.reset_score()
+	var player = get_tree().get_nodes_in_group("player")[0]
+	player.current_lives = 3
+	player.update_life_ui(current_lives)
+	Global.save_current_lives(3)
+
 func _physics_process(delta: float) -> void:
 	if Global.is_hitstop:
 		return  # ヒットストップ中はスクロール停止！
@@ -10,6 +18,7 @@ func _physics_process(delta: float) -> void:
 	$bg/Parallax2D.scroll_offset.y += 25
 	$bg/Parallax2D2.scroll_offset.y += 12
 	$bg/Parallax2D3.scroll_offset.y += 2
+<<<<<<< HEAD
 	
 func _ready():
 	$AudioStreamPlayer2D.play()
@@ -21,6 +30,8 @@ func _ready():
 	player.current_lives = 3
 	player.update_life_ui(player.current_lives) 
 	
+=======
+>>>>>>> stage2
 
 func _unhandled_input(event):
 	if event.is_action_pressed("pause"):
@@ -34,4 +45,5 @@ func toggle_pause():
 	else:
 		get_tree().paused = true
 		$PauseMenu.visible = true   # PauseMenuノードを表示
+		$PauseMenu/Restart.grab_focus()
 		SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")

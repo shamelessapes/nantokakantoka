@@ -6,13 +6,13 @@ extends Area2D
 
 var hp := 1  # 敵の最大HP
 var is_dead := false  # 死亡フラグ
+var is_blinking = false
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
 
-var is_invincible: bool = false
+var is_invincible = false
 
-func _on_invincibility_end():
-	is_invincible = false
+
 
 
 func _ready():
@@ -30,6 +30,18 @@ func _process(delta):
 func _resume_move():
 	can_move = true
 		
+# 無敵を一定時間だけ付与するメソッド
+func be_invincible(duration: float) -> void:
+	is_invincible = true
+	print("無敵ON: " + str(duration) + "秒")
+	_end_invincibility()
+	
+func _end_invincibility() -> void:
+	if not is_invincible:
+		return # ★ すでに無敵解除済みなら二度目以降は無視
+	is_invincible = false
+	print("無敵OFF")
+
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):
 		area.take_damage()
@@ -42,24 +54,19 @@ func _on_shot_area_entered(area: Area2D) -> void:
 func take_damage(damage: int) -> void:
 	if is_dead:
 		return  # すでに死亡処理済みなら無視
+	if not is_blinking:
+		is_blinking = false
+		set_meta("is_blinking", false)
+		Global._do_blink_white($animationsprite2D, self, 0.2,1.0)  # ← 白点滅開始
 
 	hp -= damage
 	if hp <= 0:
 		is_dead = true  # 死亡フラグを立てる
+		set_meta("is_blinking", false) 
 		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
 		#play_death_sound()
-		Global.add_score(10)
+		Global.add_score(0)
 		explode()
-
-#func play_death_sound() -> void:
-	#var new_sound = AudioStreamPlayer2D.new()
-	#new_sound.stream = zakodead_sound
-	#new_sound.volume_db = 0
-	#new_sound.position = position  # global_position は使わない (Godot 4.2以降では position でOK)
-	#get_tree().current_scene.add_child(new_sound)
-	#new_sound.play()
-
-	#new_sound.finished.connect(func(): new_sound.queue_free())
 
 func explode() -> void:
 	var explosion = explosion_scene.instantiate()

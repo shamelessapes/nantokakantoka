@@ -7,8 +7,10 @@ const BULLET_SCN := preload("res://tscn/tekidan_3.tscn")
 @export var stop_y: float = 100                        # 降下を止める Y 座標（スポナー側で上書き） 
 @export var descend_duration: float = 0.8                # Tweenで降りる時間
 
-var hp := 35  # 敵の最大HP
+var hp := 5  # 敵の最大HP
 var is_dead := false  # 死亡フラグ
+var is_blinking = false
+var is_invincible = false
 
 @onready var zakodead_player = $AudioStreamPlayer  # AudioStreamPlayerノードを取得
 
@@ -57,6 +59,17 @@ func _enter_exit_state() -> void:
 
 
 
+# 無敵を一定時間だけ付与するメソッド
+func be_invincible(duration: float) -> void:
+	is_invincible = true
+	print("無敵ON: " + str(duration) + "秒")
+	_end_invincibility()
+	
+func _end_invincibility() -> void:
+	if not is_invincible:
+		return # ★ すでに無敵解除済みなら二度目以降は無視
+	is_invincible = false
+	print("無敵OFF")
 
 		
 func _on_area_entered(area: Area2D) -> void:
@@ -64,20 +77,33 @@ func _on_area_entered(area: Area2D) -> void:
 		area.take_damage()
 
 func _on_shot_area_entered(area: Area2D) -> void:
+	print("ショット当たった")
 	if area.is_in_group("player_shot"):
 		var damage = area.damage
 		take_damage(damage)
+		
+func _on_shot_area_exited(area: Area2D) -> void:
+	if area.is_in_group("player_shot"):
+		is_blinking = false
+		set_meta("is_blinking", false)
 
 func take_damage(damage: int) -> void:
 	if is_dead:
 		return  # すでに死亡処理済みなら無視
+	
+	if not is_blinking:
+		is_blinking = true
+		set_meta("is_blinking", true)  # BlinkManager 用フラグもセット
+		Global._do_blink_white($AnimatedSprite2D, self, 0.1,1.0)  # ← 白点滅開始
 
 	hp -= damage
 	if hp <= 0:
 		is_dead = true  # 死亡フラグを立てる
+		set_meta("is_blinking", false) 
 		SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
-		Global.add_score(20)
+		Global.add_score(0)
 		explode()
+
 
 
 func explode() -> void:

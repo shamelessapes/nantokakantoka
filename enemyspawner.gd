@@ -133,10 +133,9 @@ func _spawn_phase4_row():
 	for i in range(PHASE4_ENEMY_COUNT):
 		var enemy := phase1_scene.instantiate()
 		enemy.can_move = false  # ← ここで止める
-		enemy.hp = 25
+		enemy.hp = 3
 		var x := min_x + i * step
 		enemy.position = Vector2(x, spawn_y)
-		enemy.set("is_invincible", true)
 		get_parent().add_child(enemy)
 
 		var tween = create_tween()
@@ -144,7 +143,9 @@ func _spawn_phase4_row():
 		tween.set_ease(Tween.EASE_OUT)
 
 # y = 100 まで一列に並ぶ（1秒）
+		enemy.be_invincible(1.2) 
 		tween.tween_property(enemy, "position", Vector2(x, 100), 1.0)
+		enemy._end_invincibility() 
 
 # 順番に y=300 まで降下（1秒後に順次）
 		var total_delay = 1.0 + i * 0.2  # 1秒後に右から順に落ちる
@@ -152,15 +153,6 @@ func _spawn_phase4_row():
 
 # Tween終了後に移動再開
 		tween.tween_callback(Callable(enemy, "_resume_move")).set_delay(total_delay + 1.0)
-
-
-		# 無敵解除タイマー
-		var timer := Timer.new()
-		timer.wait_time = PHASE4_IMMUNITY_TIME
-		timer.one_shot = true
-		timer.connect("timeout", Callable(enemy, "_on_invincibility_end"))
-		enemy.add_child(timer)
-		timer.start()
 		
 		
 func _go_to_boss_scene():

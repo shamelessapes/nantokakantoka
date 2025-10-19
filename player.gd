@@ -39,6 +39,8 @@ func _ready() -> void:
 	if not life_changed.is_connected($HUD.update_life_ui):
 		life_changed.connect($HUD.update_life_ui)
 	Global.load_current_lives(self)
+	if not life_changed.is_connected($HUD.update_life_ui):
+		life_changed.connect($HUD.update_life_ui)
 	update_life_ui(current_lives)
 	position = start_position  # 初期化時にセット
 	$HUD.update_life_ui(current_lives) 
@@ -242,6 +244,8 @@ func die():
 	continue_scene.process_mode = Node.PROCESS_MODE_ALWAYS  # 念のため
 	get_tree().get_root().add_child(continue_scene)
 	continue_scene.show()  # ← これがないと表示されない！
+	continue_scene.get_node("do_continue").grab_focus()
+
 
 	print("🧪 continue_scene を add_child したよ")
 	print("pause mode:", continue_scene.process_mode)

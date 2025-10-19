@@ -1,9 +1,9 @@
 extends Node2D
 #boss_zikken
 
-@onready var fade_rect = $CanvasLayer/FadeRect
-@onready var skill_background = $CanvasLayer/Parallax2D4/SkillBackground
-@onready var ui: SkillNameUI = get_node("CanvasLayer")
+@onready var fade_rect = $CanvasLayer2/CanvasLayer/FadeRect
+@onready var skill_background = $bg/Parallax2D4/SkillBackground
+#@onready var ui: Label = $CanvasLayer2/CanvasLayer/SkillNameLabel
 
 
 var skill_backgrounds = {
@@ -25,8 +25,9 @@ func toggle_pause():
 		$PauseMenu.visible = false  # PauseMenuノードを非表示
 
 	else:
-		$PauseMenu.visible = true   # PauseMenuノードを表示
+		$UI/PauseMenu.visible = true   # PauseMenuノードを表示
 		await get_tree().process_frame
+		$UI/PauseMenu/Restart.grab_focus()
 		get_tree().paused = true
 		SoundManager.play_se_by_path("res://se/決定ボタンを押す49.mp3")
 		
@@ -45,12 +46,12 @@ func _physics_process(delta: float) -> void:
 	$bg/Parallax2D.scroll_offset.y += 25
 	$bg/Parallax2D2.scroll_offset.y += 12
 	$bg/Parallax2D3.scroll_offset.y += 2
-	$CanvasLayer/Parallax2D4.scroll_offset.y += 2
+	$bg/Parallax2D4.scroll_offset.y += 2
 		
 func _ready():
 	Global.fade_in()
 	Global.register_camera($Camera2D)  # 自分のカメラノードを登録
-	$AudioStreamPlayer2D.play()
+	$bgm.play()
 
 # ========================
 # ▼ スキル時背景 ▼
