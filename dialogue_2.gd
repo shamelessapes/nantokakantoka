@@ -18,7 +18,7 @@ var is_after_battle := false  # 戦闘後会話ならtrueにする
 
 # 会話データ（画像ファイル名をそのまま使う形）
 var dialogue_beforebattle = [
-	{ "speaker": "sakura", "expression": "surprise", "bubble": "hukidasi (1)", "text": "よし、じゃあここら辺に盛り塩置くわよ。" },
+	{ "speaker": "sakura", "expression": "normal", "bubble": "hukidasi (1)", "text": "よし、じゃあここら辺に盛り塩置くわよ。" },
 	{ "speaker": "akane", "expression": "surprise", "bubble": "hukidasi (1)", "text": "待って桜、前方から何か来る！" },
 	{ "speaker": "ponsuke", "expression": "aseri", "bubble": "hukidasi (3)", "text": "わあああ、親分！\nた、助けてください！" },
 	{ "speaker": "sakura", "expression": "smile", "bubble": "hukidasi (1)", "text": "あれ、ぽん助じゃん。\n久しぶり。" },
