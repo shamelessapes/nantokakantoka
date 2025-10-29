@@ -1,7 +1,8 @@
 extends CharacterBody2D
 
-signal boss_defeated
 signal boss_appeared
+signal battle_ended                      # 戦闘終了を知らせるシグナルを宣言
+
 
 @export var boss_battle_gate: bool = false
 # --- 追加: フラグ & デバッグ ---
@@ -1205,11 +1206,11 @@ func _sp3_fire_radial_at(world_pos: Vector2) -> void:
 		b.global_position = world_pos
 		b.modulate = col
 
-		await get_tree().process_frame          # ★ _ready() 完了を保証
-		_sp3_disable_swirl(b)                   # ★ 確実に無効化
-		b.setup(dir, sp3_radial_speed, 0.0)     # 直進で発射
+		_sp3_disable_swirl(b)                    # ★ await不要。deferredで確実に上書き
+		b.setup(dir, sp3_radial_speed, 0.0)      # 直進で発射
 
-		b.kintama = true
+		# b.kintama = true   # ← 使わないので削除（自機狙いは自前で複製済み）
+
 
 
 # --- 内部：自機狙いを本体から「2連装」で発射（kintamaは使わず自前生成） ---
@@ -1276,17 +1277,22 @@ func _safe_set(obj: Object, name: String, value) -> void:
 	if _has_prop(obj, name):
 		obj.set(name, value)                      # 安全にセット（無ければ何もしない）
 
-# --- tekidan_5.gd 用：渦巻き挙動を完全停止
-func _sp3_disable_swirl(bullet: Area2D) -> void:
-	if not is_instance_valid(bullet):
-		return                                     # 弾が既に消えていたら無視
+# --- tekidan_5.gd 用：渦巻き挙動を完全停止（deferredで安全に上書き）
+func _sp3_disable_swirl(bullet) -> void:                                     # ← 型注釈を外す
+	if not is_instance_valid(bullet):                                        # 既に消えていたら何もしない
+		return
+	# _ready() 後でも確実に反映されるよう set_deferred を使う
+	if _has_prop(bullet, "spiral_enabled"):
+		bullet.set_deferred("spiral_enabled", false)                         # 渦巻きOFF
+	if _has_prop(bullet, "spin_speed"):
+		bullet.set_deferred("spin_speed", 0.0)                               # 角速度0
+	if _has_prop(bullet, "outward_weight"):
+		bullet.set_deferred("outward_weight", 0.0)                           # 外向き補正0
+	if _has_prop(bullet, "accel_per_sec"):
+		bullet.set_deferred("accel_per_sec", 0.0)                            # 加速0
+	if _has_prop(bullet, "spin_dir"):
+		bullet.set_deferred("spin_dir", 0)                                   # 念のため0
 
-	# ↓ tekidan_5.gd に合わせて、存在するプロパティだけを確実にOFF/0にする
-	_safe_set(bullet, "spiral_enabled", false)     # 渦巻きフラグOFF
-	_safe_set(bullet, "spin_speed", 0.0)           # 回転角速度ゼロ
-	_safe_set(bullet, "outward_weight", 0.0)       # 外向き補正ゼロ（完全直進化）
-	_safe_set(bullet, "accel_per_sec", 0.0)        # 念のため加速もゼロ
-	_safe_set(bullet, "spin_dir", 0)               # 向き±1を無効化（0）
 
 
 
@@ -1430,7 +1436,7 @@ func next_phase(src: String = "unknown") -> void:
 func die():
 	Global.clear_bullets()
 	await get_tree().get_current_scene().exit_spell()
-	emit_signal("boss_defeated")
+	emit_signal("battle_ended") 
 	Global.shake_screen(10.0, 0.5)  # 強さ8、0.3秒間
 	Global.add_score(10000)
 	Global.play_boss_dead_effect(Vector2(640, 200))  # 画面中央あたり

@@ -7,7 +7,7 @@ extends CanvasLayer
 @onready var message_label := $dialogue
 @onready var message_panel := $hukidasi         # 吹き出し背景
 @onready var animeplayer := $Anime_karakasa_name 
-@onready var boss_node = get_node("../boss1")  # パスは正確に書いてね！
+@onready var boss_node = get_node("../boss1")  
 signal dialogue_finished
 
 var dialogue = []  # 現在の会話セット
@@ -18,32 +18,36 @@ var is_after_battle := false  # 戦闘後会話ならtrueにする
 
 # 会話データ（画像ファイル名をそのまま使う形）
 var dialogue_beforebattle = [
-	{ "speaker": "sakura", "expression": "sakuraface (1)", "bubble": "hukidasi (1)", "text": "……やっぱり変だわ。" },
-	{ "speaker": "sakura", "expression": "sakuraface (2)", "bubble": "hukidasi (1)", "text": "白昼堂々、町中にこんなに妖怪がうじゃうじゃいるなんて！" },
-	{ "speaker": "akane",  "expression": "akane (1)",  "bubble": "hukidasi (1)", "text": "それなー？" },
-	{ "speaker": "akane",  "expression": "akane (2)",  "bubble": "hukidasi (1)", "text": "しかもコイツらいつもよりタフだおね。" },
-	{ "speaker": "sakura", "expression": "sakuraface (3)", "bubble": "hukidasi (1)", "text": "ね……ったく、鬱陶しいことこの上無いわ！" },
+	{ "speaker": "sakura", "expression": "magao", "bubble": "hukidasi (1)", "text": "……ここら辺でいいかしら。" },
+	{ "speaker": "sakura", "expression": "normal", "bubble": "hukidasi (1)", "text": "よし、明音！ここに盛り塩を置くわよ。" },
+	{ "speaker": "akane",  "expression": "smile2",  "bubble": "hukidasi (1)", "text": "お！了解だお！" },
+	{ "speaker": "akane",  "expression": "hohoemi",  "bubble": "hukidasi (1)", "text": "しかし妖怪たち、やっぱいつもよりタフだおね。" },
+	{ "speaker": "sakura", "expression": "confuse", "bubble": "hukidasi (1)", "text": "ね……みんな暴走してるみたい。" },
 	{ "speaker": "null", "expression": "null", "bubble": "hukidasi (4)", "text": "おっ！" },
-	{ "speaker": "karakasa", "expression": "karakasaobake (1)", "bubble": "hukidasi (4)", "text": "妖怪からも人間からも仲間はずれの半妖じゃねーか！" },
-	{ "speaker": "karakasa", "expression": "karakasaobake (2)", "bubble": "hukidasi (4)", "text": "今日もみじめにお散歩でちゅか～？" },
-	{ "speaker": "karakasa", "expression": "karakasaobake (3)", "bubble": "hukidasi (3)", "text": "ぎゃはははははは！かわいそ〜" },
-	{ "speaker": "sakura", "expression": "sakuraface (4)", "bubble": "hukidasi (1)", "text": "……うわでた。" },
-	{ "speaker": "akane",  "expression": "akane (3)",  "bubble": "hukidasi (1)", "text": "あ、コイツって確か昔\n桜のこといじめてた妖怪だおね？" },
-	{ "speaker": "akane",  "expression": "akane (5)",  "bubble": "hukidasi (1)", "text": "確か名前は、唐傘おばけ…だっけ。" },
-	{ "speaker": "sakura", "expression": "sakuraface (5)", "bubble": "hukidasi (1)", "text": "そうよ、まあその度に私がボコボコにしてやったけどね。" },
-	{ "speaker": "akane",  "expression": "akane (4)",  "bubble": "hukidasi (1)", "text": "コイツも懲りないおね〜。" },
-	{ "speaker": "karakasa", "expression": "karakasaobake (2)", "bubble": "hukidasi (4)", "text": "へへ……なんだか今日は力が溢れてたまらねぇぜ。" },
-	{ "speaker": "karakasa", "expression": "karakasaobake (3)", "bubble": "hukidasi (3)", "text": "ちょうどいい！半妖、お前で力試ししてやる！" },
+	{ "speaker": "karakasa", "expression": "karakasaobake (1)", "bubble": "hukidasi (4)", "text": "ちょうどいいところに人間発見！" },
+	{ "speaker": "karakasa", "expression": "karakasaobake (2)", "bubble": "hukidasi (4)", "text": "おいおい、しかも片方は\n半妖かよ！珍しいな！" },
+	{ "speaker": "karakasa", "expression": "karakasaobake (3)", "bubble": "hukidasi (3)", "text": "ぎゃはははははは！\n俺ってばツイてるぜ！" },
+	{ "speaker": "sakura", "expression": "confuse", "bubble": "hukidasi (1)", "text": "ちょっとアンタ、そこどいて。\n盛り塩置けないじゃない。" },
+	{ "speaker": "akane",  "expression": "aseri",  "bubble": "hukidasi (1)", "text": "うわ出た。\n近所で噂のお騒がせ妖怪。" },
+	{ "speaker": "sakura",  "expression": "normal",  "bubble": "hukidasi (1)", "text": "名前は確か、唐傘お化けだったっけ。" },
+	{ "speaker": "karakasa", "expression": "karakasaobake (3)", "bubble": "hukidasi (4)", "text": "へへ……なんだか今日は\n力が溢れてたまらねぇんだ。" },
+	{ "speaker": "karakasa", "expression": "karakasaobake (3)", "bubble": "hukidasi (3)", "text": "ちょうどいい！\nお前たちで力試ししてやる！" },
 ]
 
 var dialogue_afterbattle = [
 	{ "speaker": "karakasa", "expression": "karakasaobake (5)", "bubble": "hukidasi (4)", "text": "ちょ、ちょうしにのってしゅみましぇんでした……。" },
-	{ "speaker": "sakura", "expression": "sakuraface (6)", "bubble": "hukidasi (1)", "text": "これに懲りたらもうちょっかい出さないでよね。" },
-	{ "speaker": "sakura", "expression": "sakuraface (7)", "bubble": "hukidasi (1)", "text": "……ま、アンタは懲りないんでしょうけど。" },
-	{ "speaker": "akane", "expression": "akane (5)", "bubble": "hukidasi (1)", "text": "てかさー、こいつもバカだおね。\n桜がひとりぼっちなんて。" },
-	{ "speaker": "akane", "expression": "akane (6)", "bubble": "hukidasi (1)", "text": "桜には明音がいるのに。" },
-	{ "speaker": "sakura", "expression": "sakuraface (8)", "bubble": "hukidasi (1)", "text": "あはは、確かにそうじゃん。" },
-	{ "speaker": "sakura", "expression": "sakuraface (9)", "bubble": "hukidasi (1)", "text": "……さてと、先に進むとしますか。" },
+	{ "speaker": "sakura", "expression": "katana_zimange", "bubble": "hukidasi (1)", "text": "ふぅ、やっぱ雑魚は暴走しても\n所詮雑魚ね。" },
+	{ "speaker": "sakura", "expression": "katana_niko", "bubble": "hukidasi (1)", "text": "さて、今度こそ盛り塩を置いてっと。" },
+	{ "speaker": "akane", "expression": "normal", "bubble": "hukidasi (1)", "text": "よし、おつかい一つ目完了だおね。" },
+	{ "speaker": "akane", "expression": "hohoemi", "bubble": "hukidasi (1)", "text": "次はどこで何をするんだっけお？" },
+	{ "speaker": "sakura", "expression": "magao", "bubble": "hukidasi (1)", "text": "えっとねぇ、\n殿ノ頭公園の雑木林だって。" },
+	{ "speaker": "sakura", "expression": "normal", "bubble": "hukidasi (1)", "text": "また盛り塩を置けばいいのね？\n変なのー。" },
+	{ "speaker": "akane", "expression": "confuse", "bubble": "hukidasi (1)", "text": "ねぇ桜、これって本当に\n「おつかい」なのかお？" },
+	{ "speaker": "akane", "expression": "confuse", "bubble": "hukidasi (1)", "text": "なんか怪しく感じてきたんだお……。" },
+	{ "speaker": "sakura", "expression": "normal", "bubble": "hukidasi (1)", "text": "知らなーい。" },
+	{ "speaker": "sakura", "expression": "smile", "bubble": "hukidasi (1)", "text": "まあいいじゃん、大金貰えるし。" },
+	{ "speaker": "akane", "expression": "smile2", "bubble": "hukidasi (1)", "text": "そうだおね！\nまあいっか。" },
+	{ "speaker": "sakura", "expression": "smile", "bubble": "hukidasi (1)", "text": "さぁ、殿ノ頭公園にレッツゴー！" },
 ]
 
 func _ready():
@@ -76,7 +80,7 @@ func show_next_line():
 		if dialogue_index == 6 and boss_node:
 			boss_node.visible = true
 			boss_node.start_entrance_animation()
-		if dialogue_index == 14:
+		if dialogue_index == 12:
 			name_label.text = "唐傘おばけ"
 			animeplayer.play("karakasa_name")
 

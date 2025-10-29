@@ -1,23 +1,35 @@
 extends Control
 
-var is_ending = false
+var is_ending := false  # ← 終了処理に入ったらtrue。以後の入力・進行を無視
 
 # 画像ごとに複数テキストを持てる形式に変更（textsが配列）
 var story_data = [
-	{ "image": "res://image/プロローグ/1.png", "texts": [
+	{ "image": "res://image/プロローグ/5.png", "texts": [
 		"東京都にある六つ目の町、与座蔵町。",
 		"この町はとある噂で有名だった。"
 	]},
-	{ "image": "res://image/プロローグ/2.png", "texts": [
+	{ "image": "res://image/プロローグ/6.png", "texts": [
 		"そう、その噂とは……"
 	]},
-	{ "image": "res://image/プロローグ/3.png", "texts": [
+	{ "image": "res://image/プロローグ/7.png", "texts": [
 		"妖怪が出るというものである。",
 		"実際に、与座蔵町ではひとりでに物が浮いたり、\n人やモノが消えたり、",
 		"身に覚えのない請求が来たり、執拗に「オレ」と名乗る人物から\n電話がかかってきたり……。",
 		"＿＿このように町の住人は、姿の見えない怪異に日々頭を悩ませていた。"
 	]},
-	{ "image": "res://image/プロローグ/4.png", "texts": [
+	{ "image": "res://image/プロローグ/8.png", "texts": [
+		"これはそんな与座蔵町に住む２人の女子高生、\n半妖の桜と巫女の明音の物語である。"
+	]},
+	{ "image": "res://image/プロローグ/9.png", "texts": [
+		"これはそんな与座蔵町に住む２人の女子高生、\n半妖の桜と巫女の明音の物語である。"
+	]},
+	{ "image": "res://image/プロローグ/10.png", "texts": [
+		"これはそんな与座蔵町に住む２人の女子高生、\n半妖の桜と巫女の明音の物語である。"
+	]},
+	{ "image": "res://image/プロローグ/11.png", "texts": [
+		"これはそんな与座蔵町に住む２人の女子高生、\n半妖の桜と巫女の明音の物語である。"
+	]},
+	{ "image": "res://image/プロローグ/12.png", "texts": [
 		"これはそんな与座蔵町に住む２人の女子高生、\n半妖の桜と巫女の明音の物語である。"
 	]},
 ]
@@ -160,4 +172,4 @@ func end_story():
 
 	# 1.5秒の余韻中に連打されても上のフラグで無効化される
 	await get_tree().create_timer(1.5).timeout
-	Global.change_scene_with_fade("res://tscn/mikotsuka_title.tscn", Color.BLACK)
+	Global.change_scene_with_fade("res://tscn/main.tscn", Color.BLACK)

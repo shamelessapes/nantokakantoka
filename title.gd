@@ -15,7 +15,7 @@ func _ready():
 	$exit.pressed.connect(on_exit)
 	
 func on_start():
-	await Global.change_scene_with_fade("res://tscn/main.tscn" , Color.BLACK)
+	await Global.change_scene_with_fade("res://tscn/Intro.tscn" , Color.BLACK)
 	
 func go_to_option():
 	is_option_window_open = true

@@ -13,6 +13,23 @@ var is_talking := false
 
 signal score_changed(new_score)
 
+# === スコアで分岐するエンディング設定 ===
+const ENDING_THRESHOLDS := [              # ← 上から順に判定（最初に当たったものを採用）
+	{"min": 120_000, "key": "good"},     # ← 12万点以上でグッド
+	{"min":  40_000, "key": "normal"},   # ← 4万点以上でノーマル
+	{"min":       0, "key": "bad"},      # ← それ未満はバッド
+]
+
+const ENDING_PATHS := {                   # ← エンディングのシーンパス（必要に応じて変更）
+	"good":   "res://tscn/ending_good.tscn",
+	"normal": "res://tscn/ending_normal.tscn",
+	"bad":    "res://tscn/ending_bad.tscn",
+}
+
+var ending_locked := false                # ← 一度エンディングに入ったら多重遷移を止めるフラグ
+var last_ending_key := ""                 # ← どのエンディングになったかを保持（スタッフロール等で表示用）
+
+
 #func _ready():
 	#print("✅ Global.gd ready!", boss_dead_effect_scene)
 
@@ -231,3 +248,34 @@ func fade_out(color: Color = Color.BLACK, _duration: float = 1.0) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	await tween.finished
 	# フェードアウト後はあえて表示を残す（シーン遷移などの直前用）
+
+
+
+
+
+
+
+func decide_ending_key(current_score: int) -> String:
+	# スコアを上から順にチェックして最初に合致したキーを返す
+	for rule in ENDING_THRESHOLDS:
+		if current_score >= rule["min"]:
+			return rule["key"]                  # ← 例：true / good / normal / bad
+	return "bad"                                # ← 念のための保険
+
+func go_to_ending() -> void:
+	if ending_locked:                      # すでに処理中なら無視
+		return
+	ending_locked = true                   # 多重実行ロック
+
+	var key: String = decide_ending_key(score)  # ← 明示的に String 型に
+	last_ending_key = key
+
+	# Dictionary.get() は Variant を返すので String にキャストする
+	var path: String = ENDING_PATHS.get(key, "") as String  # ← 型を確定
+
+	if path.is_empty():                    # String メソッドが使える（型が確定しているため）
+		push_error("[Global] ENDING_PATHS に '" + key + "' がありません")
+		ending_locked = false
+		return
+
+	change_scene_with_fade(path, Color.BLACK, 1.5)

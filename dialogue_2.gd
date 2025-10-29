@@ -7,7 +7,7 @@ extends CanvasLayer
 @onready var message_label := $dialogue
 @onready var message_panel := $hukidasi         # 吹き出し背景
 @onready var animeplayer := $Anime_ponsuke_name
-@onready var boss_node = get_node("../ponsuke")  # パスは正確に書いてね！
+@onready var boss_node = get_node("../ponsuke")  
 signal dialogue_finished
 
 var dialogue = []  # 現在の会話セット
@@ -18,11 +18,34 @@ var is_after_battle := false  # 戦闘後会話ならtrueにする
 
 # 会話データ（画像ファイル名をそのまま使う形）
 var dialogue_beforebattle = [
-	{ "speaker": "sakura", "expression": "sakuraface (1)", "bubble": "hukidasi (1)", "text": "今は戦闘前よ" },
+	{ "speaker": "sakura", "expression": "surprise", "bubble": "hukidasi (1)", "text": "よし、じゃあここら辺に盛り塩置くわよ。" },
+	{ "speaker": "akane", "expression": "surprise", "bubble": "hukidasi (1)", "text": "待って桜、前方から何か来る！" },
+	{ "speaker": "ponsuke", "expression": "aseri", "bubble": "hukidasi (3)", "text": "わあああ、親分！\nた、助けてください！" },
+	{ "speaker": "sakura", "expression": "smile", "bubble": "hukidasi (1)", "text": "あれ、ぽん助じゃん。\n久しぶり。" },
+	{ "speaker": "akane", "expression": "surprise", "bubble": "hukidasi (1)", "text": "え、この妖怪と知り合いなのかお？" },
+	{ "speaker": "sakura", "expression": "normal", "bubble": "hukidasi (1)", "text": "うん、こいつはぽん助。\n私の子分よ。" },
+	{ "speaker": "sakura", "expression": "niko", "bubble": "hukidasi (1)", "text": "まあ子分兼家族ってとこかな。" },
+	{ "speaker": "sakura", "expression": "niko", "bubble": "hukidasi (1)", "text": "ほら、私昔化け狸の\n群れの中で育ったからさ。" },
+	{ "speaker": "akane", "expression": "hohoemi", "bubble": "hukidasi (1)", "text": "ふーん。" },
+	{ "speaker": "ponsuke", "expression": "confuse", "bubble": "hukidasi (4)", "text": "お、親分、今大変なんです。" },
+	{ "speaker": "ponsuke", "expression": "aseri", "bubble": "hukidasi (3)", "text": "なんだか力があふれて……\nうわああああ！" },
+	{ "speaker": "akane", "expression": "aseri", "bubble": "hukidasi (1)", "text": "桜、こいつ襲い掛かってくるお！" },
+	{ "speaker": "sakura", "expression": "surprise", "bubble": "hukidasi (1)", "text": "ぽん助まで暴走の餌食に……！" },
+	{ "speaker": "sakura", "expression": "oko", "bubble": "hukidasi (2)", "text": "待ってて、今助けるからね！" },
 ]
 
 var dialogue_afterbattle = [
-	{ "speaker": "sakura", "expression": "sakuraface (1)", "bubble": "hukidasi (1)", "text": "戦闘後よ" },
+	{ "speaker": "ponsuke", "expression": "boro", "bubble": "hukidasi (4)", "text": "うう、やっぱり\n親分は強いです……。" },
+	{ "speaker": "sakura", "expression": "smile", "bubble": "hukidasi (1)", "text": "あはは、親分が子分に\n負けるわけないじゃん。" },
+	{ "speaker": "akane", "expression": "normal", "bubble": "hukidasi (1)", "text": "桜、盛り塩置いておいたお！" },
+	{ "speaker": "sakura", "expression": "niko", "bubble": "hukidasi (1)", "text": "ありがと！\nよし、これで二つ目も完了っと。" },
+	{ "speaker": "akane", "expression": "surprise", "bubble": "hukidasi (1)", "text": "えーっと、次は確か三叉路で……" },
+	{ "speaker": "sakura", "expression": "oko", "bubble": "hukidasi (2)", "text": "最初にすれ違った人に\nお稲荷さんを渡せですって？" },
+	{ "speaker": "sakura", "expression": "oko", "bubble": "hukidasi (1)", "text": "何この変な内容！\nふざけてんの？" },
+	{ "speaker": "akane", "expression": "confuse", "bubble": "hukidasi (1)", "text": "ママは一体明音たちに\n何をさせたいんだお……？" },
+	{ "speaker": "sakura", "expression": "serious", "bubble": "hukidasi (1)", "text": "まあしゃあない。\nこれも大金のためなんだから。" },
+	{ "speaker": "sakura", "expression": "oko", "bubble": "hukidasi (1)", "text": "さて、じゃあ三叉路のある…福祥寺駅に行きましょうか。" },
+	{ "speaker": "ponsuke", "expression": "boro", "bubble": "hukidasi (4)", "text": "…なんだかよく分からないけど、頑張ってくださいね、親分。" },
 ]
 
 func _ready():
@@ -30,6 +53,22 @@ func _ready():
 	Global.is_talking = false
 	var stage = get_parent().get_node("stagemanager_2")  # 親から子を探す
 	stage.connect("stage_cleared", Callable(self, "_on_stage_cleared"))
+	
+		# ▼ここを追加：ボスの「戦闘終了」シグナルと会話開始を接続
+	if is_instance_valid(boss_node):               # ノードが存在するかを安全に確認
+		boss_node.connect("battle_ended", Callable(self, "_on_battle_ended"))
+	else:
+		# もしボスがあとから生成される構成なら、少し遅らせて接続（シーン読み込み直後の安全策）
+		call_deferred("_try_connect_boss_signal")
+	
+func _try_connect_boss_signal() -> void:
+	# あとから生成された場合の拾い直し。パス固定が不安ならグループでもOK（下に別案あり）
+	if boss_node == null:
+		if has_node("../ponsuke"):
+			boss_node = get_node("../ponsuke")
+	if is_instance_valid(boss_node) and not boss_node.is_connected("battle_ended", Callable(self, "_on_battle_ended")):
+		boss_node.connect("battle_ended", Callable(self, "_on_battle_ended"))
+	
 	
 	
 func _on_stage_cleared():
@@ -59,15 +98,15 @@ func show_next_line():
 		return
 		
 	if not is_after_battle:
-		if dialogue_index == 1:
+		if dialogue_index == 14:
 			boss_node.visible = true
 			emit_signal("dialogue_finished")
 			boss_node.set_boss_battle_gate(true)
-		if dialogue_index == 0 and not is_after_battle:
+		if dialogue_index == 3 and not is_after_battle:
 			if boss_node:
 				boss_node.show()      # まず見えるようにする
 				boss_node._boss_show() # 非同期は気にせず呼ぶ
-		if dialogue_index == 14:
+		if dialogue_index == 9:
 			name_label.text = "ぽん助"
 			animeplayer.play("karakasa_name")
 

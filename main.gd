@@ -9,6 +9,7 @@ func _ready():
 	player.current_lives = 3
 	player.update_life_ui(current_lives)
 	Global.save_current_lives(3)
+	$AudioStreamPlayer2D.play()
 
 func _physics_process(delta: float) -> void:
 	if Global.is_hitstop:
