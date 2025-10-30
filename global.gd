@@ -15,9 +15,9 @@ signal score_changed(new_score)
 
 # === スコアで分岐するエンディング設定 ===
 const ENDING_THRESHOLDS := [              # ← 上から順に判定（最初に当たったものを採用）
-	{"min": 120_000, "key": "good"},     # ← 12万点以上でグッド
-	{"min":  40_000, "key": "normal"},   # ← 4万点以上でノーマル
-	{"min":       0, "key": "bad"},      # ← それ未満はバッド
+	{"min": 84000, "key": "good"},     # ← 8万点以上でグッド
+	{"min": 30000, "key": "normal"},   # ← 3万点以上でノーマル
+	{"min":     0, "key": "bad"},      # ← それ未満はバッド
 ]
 
 const ENDING_PATHS := {                   # ← エンディングのシーンパス（必要に応じて変更）

@@ -134,6 +134,6 @@ func explode() -> void:
 	else:
 		get_tree().current_scene.add_child(explosion)
 	explosion.global_position = global_position
-
+	Global.add_score(400)
 	await get_tree().create_timer(0.05).timeout
 	queue_free()

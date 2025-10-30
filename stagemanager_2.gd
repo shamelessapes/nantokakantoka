@@ -87,7 +87,7 @@ func start_stage() -> void:
 	if stage_started:
 		return  # 二重起動防止
 	stage_started = true
-	_start_phase(7) # 直接フェーズ1から開始
+	_start_phase(1) # 直接フェーズ1から開始
 
 func _process(delta: float) -> void:
 	
@@ -312,6 +312,7 @@ func _next_phase() -> void:
 			_start_phase(2)    # ★ 1.5が終わったらフェーズ2へ
 			transitioning_phase = false
 		7:
+			Global.clear_bullets()
 			if not boss_started:
 				boss_started = true
 				call_deferred("_go_to_boss_scene")

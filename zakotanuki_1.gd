@@ -75,5 +75,6 @@ func explode() -> void:
 	get_tree().current_scene.add_child(explosion)
 	explosion.global_position = global_position
 	SoundManager.play_se_by_path("res://se/Balloon-Pop01-1(Dry).mp3", +10)
+	Global.add_score(300)
 	await get_tree().create_timer(0.05).timeout
 	queue_free()
