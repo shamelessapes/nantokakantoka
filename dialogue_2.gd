@@ -187,4 +187,4 @@ func hide_dialogue():
 	# dialogue_finished をボスの関数に渡す
 	emit_signal("dialogue_finished")
 	if is_after_battle:
-		await Global.change_scene_with_fade("res://tscn/demo_stage3.tscn",Color.BLACK)
+		await Global.change_scene_with_fade("res://tscn/stage3.tscn",Color.BLACK)
